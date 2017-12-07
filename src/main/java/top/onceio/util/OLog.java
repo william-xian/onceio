@@ -18,7 +18,7 @@ public class OLog {
 		System.out.printf("%s LOG %s  %s\n",SDF.format(new Date()), location,msg);
 	}
 
-	public static void warnning(String format,Object ...args) {
+	public static void warn(String format,Object ...args) {
 		StackTraceElement curStack =  Thread.currentThread().getStackTrace()[2];
 		String location = curStack.getFileName() + ":" + curStack.getLineNumber();
 		String msg = String.format(format, args);

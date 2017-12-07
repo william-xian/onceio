@@ -7,14 +7,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import top.onceio.db.annotation.Col;
-import top.onceio.db.annotation.OId;
 
 /**
  * @author Administrator
  *
  */
 public abstract class OEntity<ID>{
-	@OId
     @Col(nullable = false)
 	protected ID id;
     @Col(colDef="boolean default false",nullable = false)

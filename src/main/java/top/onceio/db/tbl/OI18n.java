@@ -2,13 +2,11 @@ package top.onceio.db.tbl;
 
 import top.onceio.annotation.I18nCfg;
 import top.onceio.db.annotation.Col;
-import top.onceio.db.annotation.OId;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.util.OUtils;
 
 @Tbl
-public class OI18n {
-	@OId
+public class OI18n extends OEntity<String>{
     @Col(size=64,nullable = false)
 	private String id;
 	@Col(size=255,nullable=false)

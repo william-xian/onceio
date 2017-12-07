@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
         case Failed.ERROR:
         	result.put("error", msg);
         	break;
-        case Failed.WARNNING:
+        case Failed.WARN:
         	result.put("warnning", msg);
         	break; 
         case Failed.MSG:

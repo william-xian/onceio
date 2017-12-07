@@ -13,7 +13,6 @@ import java.util.Set;
 import top.onceio.db.annotation.Col;
 import top.onceio.db.annotation.Constraint;
 import top.onceio.db.annotation.ConstraintType;
-import top.onceio.db.annotation.OId;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
 import top.onceio.util.OAssert;
@@ -134,7 +133,7 @@ public class TableMeta {
 				}	
 			}
 			if(!missed.isEmpty()) {
-				OLog.warnning("以下字段没有加载到Field %s", OUtils.toJSON(missed));
+				OLog.warn("以下字段没有加载到Field %s", OUtils.toJSON(missed));
 			}
 		} catch (ClassNotFoundException e) {
 			OAssert.fatal("无法加载 %s", entityName);
@@ -320,12 +319,13 @@ public class TableMeta {
 			}
 			tm.setConstraints(constraints);
 		}
-		List<ColumnMeta> columnMetas = new ArrayList<>();
-		List<String> primaryKeys = new ArrayList<>();
 		List<Class<?>> classes = new ArrayList<>();
 		for(Class<?> clazz = entity;!clazz.equals(Object.class);clazz=clazz.getSuperclass()) {
 			classes.add(0, clazz);
 		}
+
+		List<ColumnMeta> columnMetas = new ArrayList<>();
+		List<String> colOrder = new ArrayList<>();
 		for (Class<?> clazz : classes) {
 			for (Field field : clazz.getDeclaredFields()) {
 				Col col = field.getAnnotation(Col.class);
@@ -334,9 +334,7 @@ public class TableMeta {
 				}
 				ColumnMeta cm = new ColumnMeta();
 				cm.setName(field.getName());
-				OId oid = field.getAnnotation(OId.class);
-				if (oid != null) {
-					primaryKeys.add(field.getName());
+				if (field.getName().equals("id")) {
 					cm.setPrimaryKey(true);
 				}
 				cm.setNullable(col.nullable());
@@ -363,14 +361,17 @@ public class TableMeta {
 					cm.setUseFK(col.useFK());
 					cm.setRefTable(col.ref().getSimpleName());
 				}
-				columnMetas.add(cm);
+				int index = colOrder.indexOf(cm.getName());
+				if(index < 0) {
+					colOrder.add(cm.getName());	
+					columnMetas.add(cm);
+				}else {
+					columnMetas.set(index, cm);
+				}
 			}
 		}
 		tm.setColumnMetas(columnMetas);
-		if(primaryKeys.size() > 1) {
-			OAssert.fatal("不支持符合主键 %s(%s)", tm.table,String.join(",", primaryKeys));
-		}
-		tm.setPrimaryKey(primaryKeys.get(0));
+		tm.setPrimaryKey("id");
 		tm.freshNameToField();
 		tm.freshConstraintMetaTable();
 		if(tblView != null && classes.size() >=3) {

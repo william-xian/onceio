@@ -108,7 +108,7 @@ public class HavingTpl<E> extends FuncTpl<E>{
 			if(!extSql.equals("")) {
 				sb.append(String.format("%s (%s)", extLogic,extTpls.get(i).sql(sqlArgs)));	
 			}else {
-				OLog.warnning("the sql of having's %s is empty", extLogic);
+				OLog.warn("the sql of having's %s is empty", extLogic);
 			}
 		}
 		return sb.toString();

@@ -3,11 +3,11 @@ package top.onceio.db;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import test.entity.Goods;
@@ -19,11 +19,10 @@ import test.entity.UserChief;
 import test.entity.UserFriend;
 import test.entity.UserProfile;
 import test.entity.Wallet;
-import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.IdGenerator;
-import top.onceio.db.dao.Page;
 import top.onceio.db.dao.impl.DaoHelper;
 import top.onceio.db.tbl.OEntity;
+import top.onceio.db.tbl.OI18n;
 import top.onceio.util.IDGenerator;
 
 public class DaoBaseTest {
@@ -66,6 +65,7 @@ public class DaoBaseTest {
 		entities.add(GoodsOrder.class);
 		entities.add(GoodsShipping.class);
 		entities.add(GoodsOrderView.class);
+		entities.add(OI18n.class);
 		
 		daoHelper.init(jdbcTemplate, idGenerator,entities);
 		}catch(IOException e) {
@@ -73,24 +73,10 @@ public class DaoBaseTest {
 		}
 	}
 	
-	public static void main(String[] args) {
+	@Test
+	public void createTbl() {
 		initDao();
-		Cnd<GoodsOrderView> cnd = new Cnd<>(GoodsOrderView.class);
-		Page<GoodsOrderView> page = daoHelper.find(GoodsOrderView.class,cnd);
-		System.out.println(page);
-		
-		Cnd<GoodsOrder> rm = new Cnd<>(GoodsOrder.class);
-		rm.ge().setId(0L);
-		List<Long> ids = Arrays.asList(1L,2L,3L,4L,5L);
-		daoHelper.remove(UserChief.class, ids);
-		daoHelper.remove(Goods.class, ids);
-		daoHelper.remove(GoodsDesc.class, ids);
-		daoHelper.remove(GoodsOrder.class, rm);
-		Cnd<GoodsOrder> del = new Cnd<>(GoodsOrder.class);
-		del.ge().setId(0L);
-		daoHelper.delete(GoodsOrder.class, del);
-		daoHelper.delete(UserChief.class, ids);
-		daoHelper.delete(Goods.class, ids);
-		daoHelper.delete(GoodsDesc.class, ids);
+		System.out.println(OI18n.class);
 	}
+	
 }

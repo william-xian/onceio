@@ -191,7 +191,7 @@ public class Cnd<E> extends Tpl{
 					default:
 				}	
 			}else {
-				OLog.warnning("查询条件是空的");
+				OLog.warn("查询条件是空的");
 			}
 		}
 		return self.toString();

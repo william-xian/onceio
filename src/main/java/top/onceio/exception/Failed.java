@@ -6,7 +6,7 @@ public class Failed extends RuntimeException{
 	 */
 	private static final long serialVersionUID = 1L;
 	public static final int MSG = 1;
-	public static final int WARNNING = 2;
+	public static final int WARN = 2;
 	public static final int ERROR = 3;
 	private int level;
 	private String format;
@@ -56,7 +56,7 @@ public class Failed extends RuntimeException{
 		throw new Failed(MSG,format,args);
 	}
 	public static void throwWarring(String format,Object... args){
-		throw new Failed(WARNNING,format,args);
+		throw new Failed(WARN,format,args);
 	}
 	public static void throwError(String format,Object... args){
 		throw new Failed(ERROR,format,args);
@@ -65,7 +65,7 @@ public class Failed extends RuntimeException{
 		throw new Failed(MSG,format,args,data);
 	}
 	public static void throwWarringData(Object data,String format,Object... args){
-		throw new Failed(WARNNING,format,args,data);
+		throw new Failed(WARN,format,args,data);
 	}
 	public static void throwErrorData(Object data,String format,Object... args){
 		throw new Failed(ERROR,format,args,data);
