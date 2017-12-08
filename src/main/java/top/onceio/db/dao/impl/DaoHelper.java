@@ -13,7 +13,6 @@ import java.util.function.Consumer;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -24,6 +23,7 @@ import top.onceio.db.dao.IdGenerator;
 import top.onceio.db.dao.Page;
 import top.onceio.db.dao.tpl.SelectTpl;
 import top.onceio.db.dao.tpl.UpdateTpl;
+import top.onceio.db.jdbc.JdbcHelper;
 import top.onceio.db.meta.ColumnMeta;
 import top.onceio.db.meta.ConstraintMeta;
 import top.onceio.db.meta.TableMeta;
@@ -35,7 +35,7 @@ import top.onceio.util.OLog;
 import top.onceio.util.OUtils;
 
 public class DaoHelper {
-	private JdbcTemplate jdbcTemplate;
+	private JdbcHelper jdbcHelper;
 	private Map<String,TableMeta> tableToTableMeta;
 	private IdGenerator idGenerator;
 	@SuppressWarnings("rawtypes")
@@ -44,13 +44,13 @@ public class DaoHelper {
 	public DaoHelper(){
 	}
 	
-	public DaoHelper(JdbcTemplate jdbcTemplate, IdGenerator idGenerator,List<Class<? extends OEntity<?>>> entitys) {
+	public DaoHelper(JdbcHelper jdbcHelper, IdGenerator idGenerator,List<Class<? extends OEntity<?>>> entitys) {
 		super();
-		init(jdbcTemplate,idGenerator,entitys);
+		init(jdbcHelper,idGenerator,entitys);
 	}
 	
 	public boolean exist(Class<?> tbl) {
-		Integer cnt = jdbcTemplate.queryForObject(String.format("select count(*) from pg_class where relname = '%s'", tbl.getSimpleName().toLowerCase()), Integer.class);
+		Integer cnt = jdbcHelper.queryForObject(String.format("select count(*) from pg_class where relname = '%s'", tbl.getSimpleName().toLowerCase()), Integer.class);
 		if(cnt != null && cnt > 0) {
 			return true;
 		}else {
@@ -58,14 +58,14 @@ public class DaoHelper {
 		}
 	}
 	/** TODO 依赖关系排序  */
-	public void init(JdbcTemplate jdbcTemplate,IdGenerator idGenerator,List<Class<? extends OEntity<?>>> entities) {
-		this.jdbcTemplate = jdbcTemplate;
+	public void init(JdbcHelper jdbcHelper,IdGenerator idGenerator,List<Class<? extends OEntity<?>>> entities) {
+		this.jdbcHelper = jdbcHelper;
 		this.idGenerator = idGenerator;
 		this.tableToTableMeta = new HashMap<>();
 		if(!exist(OTableMeta.class)) {
 			List<String> sqls = this.createOrUpdate(OTableMeta.class);
 			if(sqls != null && !sqls.isEmpty()) {
-				jdbcTemplate.batchUpdate(sqls.toArray(new String[0]));	
+				jdbcHelper.batchUpdate(sqls.toArray(new String[0]));	
 			}
 		}
 		TableMeta tm = TableMeta.createBy(OTableMeta.class);
@@ -108,7 +108,7 @@ public class DaoHelper {
 				sqls.addAll(tblSqls.get(tbl));
 			}
 			if(!sqls.isEmpty()) {
-				jdbcTemplate.batchUpdate(sqls.toArray(new String[0]));	
+				jdbcHelper.batchUpdate(sqls.toArray(new String[0]));	
 			}
 		}
 		
@@ -139,12 +139,12 @@ public class DaoHelper {
 		this.idGenerator = idGenerator;
 	}
 
-	public JdbcTemplate getJdbcTemplate() {
-		return jdbcTemplate;
+	public JdbcHelper getJdbcHelper() {
+		return jdbcHelper;
 	}
 
-	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
+	public void setJdbcHelper(JdbcHelper jdbcHelper) {
+		this.jdbcHelper = jdbcHelper;
 	}
 	
 	public Map<String, TableMeta> getTableToTableMata() {
@@ -204,16 +204,16 @@ public class DaoHelper {
 			return false;
 		}
 		String sql = String.format("DROP TABLE IF EXISTS %s;", tbl.getSimpleName());
-		jdbcTemplate.batchUpdate(sql);
+		jdbcHelper.batchUpdate(sql);
 		return true;
 	}
 
 	public int[] batchUpdate(final String... sql) throws DataAccessException {
-		return jdbcTemplate.batchUpdate(sql);
+		return jdbcHelper.batchUpdate(sql);
 	}
 	
 	public int[] batchUpdate(final String sql,List<Object[]> batchArgs) throws DataAccessException {
-		return jdbcTemplate.batchUpdate(sql, batchArgs);
+		return jdbcHelper.batchUpdate(sql, batchArgs);
 	}
 	
 	private static <E extends OEntity<?>> RowMapper<E> genRowMapper(Class<E> tbl,TableMeta tm) {
@@ -282,7 +282,7 @@ public class DaoHelper {
 		List<String> names = idNameVal.getIdNames();
 		String stub = OUtils.genStub("?",",",names.size());
 		String sql = String.format("INSERT INTO %s(%s) VALUES(%s);", tm.getTable(),String.join(",", names),stub);
-		jdbcTemplate.update(sql, vals.toArray());
+		jdbcHelper.update(sql, vals.toArray());
 		return entity;
 	}
 	private void validate(TableMeta tm,Object obj,boolean ignoreNull) {
@@ -338,7 +338,7 @@ public class DaoHelper {
 		
 		OLog.debug("%s\n",sql);
 		
-		int[] cnts = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+		int[] cnts = jdbcHelper.batchUpdate(sql, new BatchPreparedStatementSetter() {
 			@Override
 			public void setValues(PreparedStatement ps, int i) throws SQLException {
 				List<Object> vals = valsList.get(i);
@@ -378,7 +378,7 @@ public class DaoHelper {
 		List<Object> vals = idNameVal.getValsList().get(0);
 		String sql = String.format("UPDATE %s SET %s=? WHERE id=? and rm = false;", tm.getTable(),String.join("=?,", names));
 		vals.add(id);
-		return jdbcTemplate.update(sql, vals.toArray());
+		return jdbcHelper.update(sql, vals.toArray());
 	}
 
 
@@ -401,7 +401,7 @@ public class DaoHelper {
 		vals.addAll(tpl.getArgs());
 		vals.add(tpl.getId());
 		String sql = String.format("UPDATE %s SET %s WHERE id=? and rm=false;", tm.getTable(),setTpl);
-		return jdbcTemplate.update(sql, vals.toArray());
+		return jdbcHelper.update(sql, vals.toArray());
 	}
 	
 	public <E extends OEntity<?>> int updateByTplCnd(Class<E> tbl,UpdateTpl<E> tpl,Cnd<E> cnd) {
@@ -418,7 +418,7 @@ public class DaoHelper {
 		}
 		vals.addAll(sqlArgs);
 		String sql = String.format("UPDATE %s SET %s WHERE (%s) and rm=false;", tm.getTable(),tpl.getSetTpl(),cndSql);
-		return jdbcTemplate.update(sql, vals.toArray());
+		return jdbcHelper.update(sql, vals.toArray());
 	}
 
 	public <E,ID> int remove(Class<E> tbl,ID id) {
@@ -427,7 +427,7 @@ public class DaoHelper {
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		String sql = String.format("UPDATE %s SET rm=true WHERE id=?;", tm.getTable());
-		return jdbcTemplate.update(sql, id);
+		return jdbcHelper.update(sql, id);
 	}
 
 	public <E,ID> int remove(Class<E> tbl, List<ID> ids) {
@@ -435,7 +435,7 @@ public class DaoHelper {
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		String stub = OUtils.genStub("?",",",ids.size());
 		String sql = String.format("UPDATE %s SET rm=true WHERE id in (%s);", tm.getTable(),stub);
-		return jdbcTemplate.update(sql, ids.toArray());
+		return jdbcHelper.update(sql, ids.toArray());
 	}
 	public <E extends OEntity<?>> int remove(Class<E> tbl, Cnd<E> cnd) {
 		if(cnd == null) return 0;
@@ -446,20 +446,20 @@ public class DaoHelper {
 			return 0;
 		}
 		String sql = String.format("UPDATE %s SET rm=true WHERE (%s);", tm.getTable(),whereCnd);
-		return jdbcTemplate.update(sql, sqlArgs.toArray());
+		return jdbcHelper.update(sql, sqlArgs.toArray());
 	}
 	public <E,ID> int delete(Class<E> tbl, ID id) {
 		if(id == null) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		String sql = String.format("DELETE FROM %s WHERE id=? and rm = true;", tm.getTable());
-		return jdbcTemplate.update(sql, id);
+		return jdbcHelper.update(sql, id);
 	}
 	public <E,ID> int delete(Class<E> tbl, List<ID> ids) {
 		if(ids == null || ids.isEmpty()) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		String stub = OUtils.genStub("?", ",", ids.size());
 		String sql = String.format("DELETE FROM %s WHERE id in (%s) and (rm = true);", tm.getTable(),stub);
-		return jdbcTemplate.update(sql, ids.toArray());
+		return jdbcHelper.update(sql, ids.toArray());
 	}
 	
 	public <E extends OEntity<?>> int delete(Class<E> tbl, Cnd<E> cnd) {
@@ -471,7 +471,7 @@ public class DaoHelper {
 			return 0;
 		}
 		String sql = String.format("DELETE FROM %s WHERE (rm = true) and (%s);", tm.getTable(), whereCnd);
-		return jdbcTemplate.update(sql, sqlArgs.toArray());
+		return jdbcHelper.update(sql, sqlArgs.toArray());
 	}
 
 
@@ -490,7 +490,7 @@ public class DaoHelper {
 		String sql = cnd.countSql(tm, tpl, sqlArgs);
 		OLog.debug(sql);
 		OLog.debug(sqlArgs.toString());
-		return jdbcTemplate.queryForObject(sql,sqlArgs.toArray(new Object[0]), Long.class);
+		return jdbcHelper.queryForObject(sql,sqlArgs.toArray(new Object[0]), Long.class);
 	}
 
 	public <E extends OEntity<?>> Page<E> find(Class<E> tbl,Cnd<E> cnd) {
@@ -530,7 +530,7 @@ public class DaoHelper {
 			List<Object> sqlArgs = new ArrayList<>();
 			String sql = cnd.pageSql(tm,tpl,sqlArgs);
 			OLog.debug(sql);
-			List<E> data = jdbcTemplate.query(sql,sqlArgs.toArray(), rowMapper);
+			List<E> data = jdbcHelper.query(sql,sqlArgs.toArray(), rowMapper);
 			page.setData(data);
 		}
 		return page;
@@ -556,7 +556,7 @@ public class DaoHelper {
 		}
 		List<Object> args = new ArrayList<>();
 		StringBuffer sql = cnd.wholeSql(tm, tpl, args);
-		jdbcTemplate.query(sql.toString(), args.toArray(new Object[0]), new RowCallbackHandler() {
+		jdbcHelper.query(sql.toString(), args.toArray(new Object[0]), new RowCallbackHandler() {
 			@Override
 			public void processRow(ResultSet rs) throws SQLException {
 				E row = createBy(tbl, tm,rs);

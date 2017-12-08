@@ -8,7 +8,6 @@ import java.util.Properties;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import test.entity.Goods;
 import test.entity.GoodsDesc;
@@ -21,12 +20,13 @@ import test.entity.UserProfile;
 import test.entity.Wallet;
 import top.onceio.db.dao.IdGenerator;
 import top.onceio.db.dao.impl.DaoHelper;
+import top.onceio.db.jdbc.JdbcHelper;
 import top.onceio.db.tbl.OEntity;
 import top.onceio.db.tbl.OI18n;
 import top.onceio.util.IDGenerator;
 
 public class DaoBaseTest {
-	protected static final JdbcTemplate jdbcTemplate = new JdbcTemplate();
+	protected static final JdbcHelper jdbcHelper = new JdbcHelper();
 
 	protected static final DaoHelper daoHelper = new DaoHelper();
 	
@@ -45,7 +45,7 @@ public class DaoBaseTest {
 		ds.setUsername(username);
 		ds.setPassword(password);
 		ds.setMaxActive(Integer.parseInt(maxActive));
-		jdbcTemplate.setDataSource(ds);
+		jdbcHelper.setDataSource(ds);
 		System.out.println("loaded jdbcTemplate");
 		IdGenerator idGenerator = new IdGenerator() {
 			@Override
@@ -67,7 +67,7 @@ public class DaoBaseTest {
 		entities.add(GoodsOrderView.class);
 		entities.add(OI18n.class);
 		
-		daoHelper.init(jdbcTemplate, idGenerator,entities);
+		daoHelper.init(jdbcHelper, idGenerator,entities);
 		}catch(IOException e) {
 			e.printStackTrace();
 		}
