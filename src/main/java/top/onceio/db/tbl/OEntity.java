@@ -12,7 +12,7 @@ import top.onceio.db.annotation.Col;
  * @author Administrator
  *
  */
-public abstract class OEntity<ID>{
+public abstract class OEntity<ID> {
     @Col(nullable = false)
 	protected ID id;
     @Col(colDef="boolean default false",nullable = false)
@@ -31,6 +31,10 @@ public abstract class OEntity<ID>{
 	}
 	public void setId(ID id) {
 		this.id = id;
+	}
+	@SuppressWarnings("unchecked")
+	public void setOId(Object id) {
+		this.id = (ID)id;
 	}
 	public Boolean getRm() {
 		return rm;

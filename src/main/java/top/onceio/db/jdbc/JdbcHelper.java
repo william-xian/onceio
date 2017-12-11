@@ -6,12 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.RowMapper;
+import top.onceio.exception.Failed;
 
 public class JdbcHelper {
 	
@@ -32,8 +31,7 @@ public class JdbcHelper {
 			try {
 				conn = dataSource.getConnection();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Failed.throwError(e.getMessage());
 			}
 			try {
 				stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CONCUR_UPDATABLE);
@@ -42,27 +40,78 @@ public class JdbcHelper {
 						stat.setObject(i+1, args[i]);
 					}
 				}
+				rs = stat.executeQuery();	
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			try {
-				rs = stat.executeQuery();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			try {
-				conn.commit();
-			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				Failed.throwMsg(e.getMessage());
+			}finally {
+				if(stat != null) {
+					try {
+						stat.close();
+					} catch (SQLException e) {
+						Failed.throwMsg(e.getMessage());
+					}
+				}
+				if(conn != null) {
+					try {
+						conn.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+						Failed.throwMsg(e.getMessage());
+					}
+				}
 			}
 		}
 		return rs;
 	}
 	
-	private ResultSet query(String sql,Object[] args) {
+	private int[] batchExec(String sql,List<Object[]> args) {
+		Connection conn = null;
+		PreparedStatement stat = null;
+		int[] result = null;
+		if(dataSource != null) {
+			try {
+				conn = dataSource.getConnection();
+				conn.setAutoCommit(false);
+			} catch (SQLException e) {
+				Failed.throwError(e.getMessage());
+			}
+			try {
+				stat = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+				for (Object[] arr:args) {
+					for (int i = 0; i < arr.length; i++) {
+						stat.setObject(i+1, arr[i]);
+					}
+					stat.addBatch();
+					
+				}
+				stat.setMaxRows(args.size());
+				result = stat.executeBatch();
+				conn.commit();
+			} catch (SQLException e) {
+				e.printStackTrace();
+				Failed.throwMsg(e.getMessage());
+			}finally {
+				if(stat != null) {
+					try {
+						stat.close();
+					} catch (SQLException e) {
+						Failed.throwMsg(e.getMessage());
+					}
+				}		
+				if(conn != null) {
+					try {
+						conn.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+						Failed.throwMsg(e.getMessage());
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	public void query(String sql,Object[] args,Consumer<ResultSet> consumer) {
 		Connection conn = null;
 		PreparedStatement stat = null;
 		ResultSet rs = null;
@@ -70,8 +119,98 @@ public class JdbcHelper {
 			try {
 				conn = dataSource.getConnection();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
+				Failed.throwError(e.getMessage());
+			}
+			try {
+				stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CONCUR_READ_ONLY);
+				if(args != null) {
+					for(int i = 0; i < args.length; i++ ){
+						stat.setObject(i+1, args[i]);
+					}
+				}
+				rs = stat.executeQuery();
+				while(rs.next()) {
+					consumer.accept(rs);
+				}
+			} catch (SQLException e) {
+				Failed.throwMsg(e.getMessage());
+			}finally {
+				
+				if(stat != null) {
+					try {
+						stat.close();
+					} catch (SQLException e) {
+						Failed.throwMsg(e.getMessage());
+					}
+				}
+				
+				if(conn != null) {
+					try {
+						conn.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+						Failed.throwMsg(e.getMessage());
+					}
+				}
+			}
+		}
+	}
+	
+ 	public <T> T queryForObject(String sql, Class<T> clazz) {
+		return queryForObject(sql,null,clazz);
+	}	
+	public <T> T queryForObject(String sql, Object[] args, Class<T> clazz) {
+		final List<T> result  = new LinkedList<>();
+		
+		query(sql,args,new Consumer<ResultSet>(){
+			@Override
+			public void accept(ResultSet rs) {
+				try {
+					result.add(rs.getObject(1, clazz));
+				} catch (SQLException e) {
+					Failed.throwMsg(e.getMessage());
+				}
+			}
+		});
+		if(result.size() > 1) {
+			Failed.throwError("The count of result(%s) is more then 1.", result.size());
+		}else if(result.size() == 1) {
+			return result.get(0);
+		}
+		return null;
+	}
+
+	public int[] batchUpdate(String sql) {
+		return batchUpdate(sql, null);
+	}
+
+	public int[] batchUpdate(String... sql) {
+		StringBuilder sb = new StringBuilder();
+		for(String s:sql) {
+			if(s != null && s.isEmpty()) {
+				sb.append(s);
+				if(!s.endsWith(";")) {
+					sb.append(';');
+				}
+			}
+		}
+		return batchUpdate(sb.toString());	
+	}
+	
+	public int[] batchUpdate(String sql, List<Object[]> batchArgs) {
+		return batchExec(sql,batchArgs);
+	}
+	
+	public int update(String sql, Object... args) {
+		int cnt = 0;
+		Connection conn = null;
+		PreparedStatement stat = null;
+		if(dataSource != null) {
+			try {
+				conn = dataSource.getConnection();
+			} catch (SQLException e) {
 				e.printStackTrace();
+				Failed.throwError(e.getMessage());
 			}
 			try {
 				stat = conn.prepareStatement(sql, ResultSet.FETCH_FORWARD, ResultSet.CONCUR_READ_ONLY);
@@ -80,81 +219,30 @@ public class JdbcHelper {
 						stat.setObject(i+1, args[i]);
 					}
 				}
+				cnt =  stat.executeUpdate();
+				
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
-			try {
-				rs = stat.executeQuery();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			try {
-				conn.commit();
-			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				Failed.throwMsg(e.getMessage());
+			}finally {
+				if(stat != null) {
+					try {
+						stat.close();
+					} catch (SQLException e) {
+						Failed.throwMsg(e.getMessage());
+					}
+				}
+				if(conn != null) {
+					try {
+						conn.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+						Failed.throwMsg(e.getMessage());
+					}
+				}
 			}
 		}
-		return rs;
-	}
-	
- 	public <T> T queryForObject(String sql, Class<T> clazz) {
-		return queryForObject(sql,null,clazz);
-	}	
-	public <T> T queryForObject(String sql, Object[] args, Class<T> clazz) {
-		try {
-			ResultSet rs = query(sql,args);
-			if(rs.next()) {
-				return  rs.getObject(1, clazz);
-			}
-			rs.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public <E> List<E> query(String sql, Object[] args, RowCallbackHandler rowCallbackHandler) {
-		List<E> result = new LinkedList<>();
-		try {
-			ResultSet rs = query(sql,args);
-			if(rs != null) {
-				rowCallbackHandler.processRow(rs);	
-			}
-			rs.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return result;
-	}
-
-	public <E> List<E> query(String sql, Object[] array, RowMapper<E> rowMapper) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public int[] batchUpdate(String sql, BatchPreparedStatementSetter batchPreparedStatementSetter) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public int[] batchUpdate(String... sql) {
-		// TODO Auto-generated method stub
-		return null;	
-	}
-	
-	public int[] batchUpdate(String sql, List<Object[]> batchArgs) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public int update(String sql, Object... args) {
-		// TODO Auto-generated method stub
-		return 0;
+		return cnt;
 	}
 
 }

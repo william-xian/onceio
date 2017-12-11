@@ -3,6 +3,7 @@ package top.onceio.db;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -26,7 +27,15 @@ public class DaoHelperTest extends DaoBaseTest{
 	@AfterClass
 	public static void cleanup() {
 	}
-	@Test
+
+	@After
+	public void clean(){
+		Cnd<UserChief> cnd = new Cnd<>(UserChief.class);
+		daoHelper.remove(UserChief.class, cnd);
+		daoHelper.delete(UserChief.class, cnd);
+		
+	}
+	//@Test
 	public void insert_get_remove_delete() {
 		List<UserChief> ucs = new ArrayList<>();
 		List<Long> ids = new ArrayList<>();
@@ -41,8 +50,8 @@ public class DaoHelperTest extends DaoBaseTest{
 			ucs.add(uc);
 			ids.add(uc.getId());
 		}
-		int insercnt = daoHelper.insert(ucs);
-		Assert.assertEquals(10, insercnt);
+		int insertcnt = daoHelper.insert(ucs);
+		Assert.assertEquals(10, insertcnt);
 		Assert.assertEquals(10, daoHelper.count(UserChief.class));
 		UserChief uc = new UserChief();
 		uc.setId(IDGenerator.randomID());
@@ -77,7 +86,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		Assert.assertEquals(0, daoHelper.count(UserChief.class));
 	}
 	
-	//@Test
+	@Test
 	public void update_updateIgnoreNull() {
 		List<UserChief> ucs = new ArrayList<>();
 		List<Long> ids = new ArrayList<>();
@@ -115,7 +124,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		daoHelper.remove(UserChief.class, ids);
 		daoHelper.delete(UserChief.class, ids);
 	}
-	//@Test
+	@Test
 	public void updateByTpl() {
 		List<UserChief> ucs = new ArrayList<>();
 		List<Long> ids = new ArrayList<>();
@@ -145,7 +154,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		daoHelper.delete(UserChief.class, ids);
 	}
 	
-	//@Test
+	@Test
 	public void find() {
 		List<UserChief> ucs = new ArrayList<>();
 		List<Long> ids = new ArrayList<>();
@@ -160,6 +169,7 @@ public class DaoHelperTest extends DaoBaseTest{
 			ids.add(uc.getId());
 		}
 		daoHelper.insert(ucs);
+		System.out.println(OUtils.toJSON(ucs));
 		Cnd<UserChief> cnd1 = new Cnd<>(UserChief.class);
 		cnd1.eq().setGenre(2);
 		cnd1.or().ne().setGenre(3);
