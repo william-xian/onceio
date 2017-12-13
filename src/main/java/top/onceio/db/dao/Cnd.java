@@ -173,11 +173,15 @@ public class Cnd<E> extends Tpl{
 			if(!other.equals("")){
 				switch(sl) {
 				case "AND":
-					if(self.length() > 0) self.append(" AND");
+					if(self.length() > 0) {
+						self.append(" AND");
+					}
 					self.append(other);
 					break;
 				case "OR":
-					if(self.length() > 0) self.append(" OR");
+					if(self.length() > 0) {
+						self.append(" OR");
+					}
 					self.append(other);
 					break;
 				case "NOT":
@@ -349,7 +353,6 @@ public class Cnd<E> extends Tpl{
 	        if(method.getName().startsWith("set") && argsx.length == 1) {
 	            if(method.getName().length() > 3) {
 	            	String fieldName = method.getName().substring(3,4).toLowerCase() +method.getName().substring(4);
-	            	args.add(argsx[0]);
 	            	String strLogic = "";
 	            	if(logic != null) {
 	            		strLogic = logic.toString() +" ";
@@ -357,12 +360,17 @@ public class Cnd<E> extends Tpl{
 	            	if(opt.equals("IN")&& inVals != null && inVals.length > 1) {
 	            		String stub = OUtils.genStub("?", ",", inVals.length);
 	            		selfSql.append(String.format("%s%s %s (%s)", strLogic,fieldName,opt, stub));
+	            		for(Object v:inVals) {
+		            		args.add(v);
+	            		}
 	            	}else if(opt.equals("IS NULL")){
 	            		selfSql.append(String.format("%s%s IS NULL", strLogic,fieldName));
 	            	}else if(opt.equals("IS NOT NULL")){
 	            		selfSql.append(String.format("%s%s IS NOT NULL",strLogic, fieldName));
 	            	}else {
 	            		selfSql.append(String.format("%s%s %s ?", strLogic, fieldName,opt));
+	            		args.add(argsx[0]);
+		            	
 	            	}
 	            }
 	        }

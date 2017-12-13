@@ -6,19 +6,18 @@ import top.onceio.db.annotation.Tbl;
 import top.onceio.util.OUtils;
 
 @Tbl
-public class OI18n extends OEntity<String>{
+public class OI18n extends OEntity{
     @Col(size=64,nullable = false)
-	private String id;
+	private String key;
 	@Col(size=255,nullable=false)
 	private String name;
 	@Col(size=32,nullable=true)
 	private String val;
-	
-	public String getId() {
-		return id;
+	public String getKey() {
+		return key;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public void setKey(String key) {
+		this.key = key;
 	}
 	public String getName() {
 		return name;

@@ -12,7 +12,7 @@ public class UpdateTpl<T> extends Tpl{
 	private StringBuffer sql = new StringBuffer();
 	private T tpl;
 	private String strOpt;
-	private Object id;
+	private Long id;
 	private List<Object> args =  new ArrayList<>();
 	@SuppressWarnings("unchecked")
 	public UpdateTpl(Class<T> tplClass) {
@@ -23,7 +23,7 @@ public class UpdateTpl<T> extends Tpl{
         tpl = (T)enhancer.create(); 
 	}
 	
-	public Object getId() {
+	public Long getId() {
 		return id;
 	}
 	public T set() {
@@ -87,7 +87,7 @@ public class UpdateTpl<T> extends Tpl{
 	            	String fieldName = method.getName().substring(3,4).toLowerCase() +method.getName().substring(4);
 		            Object arg = argsx[0];
 		            if(fieldName.equals("id") ){
-		            	id = arg;
+		            	id = (Long)arg;
 		            }else if(fieldName.equals("rm")) {
 		            }else if(strOpt != null) {
 		            	if(strOpt.equals("=")) {

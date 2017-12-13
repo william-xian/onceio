@@ -5,7 +5,7 @@ import top.onceio.db.annotation.Tbl;
 import top.onceio.db.tbl.OEntity;
 
 @Tbl
-public class UserChief extends OEntity<Long> {
+public class UserChief extends OEntity {
     @Col(nullable = false, size=32,unique=true)
 	private String name;
     @Col(nullable = true, size=64)

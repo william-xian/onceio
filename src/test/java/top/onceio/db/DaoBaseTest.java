@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.junit.Test;
 
 import test.entity.Goods;
 import test.entity.GoodsDesc;
@@ -55,7 +54,7 @@ public class DaoBaseTest {
 			
 		};
 		DDHoster.upgrade();
-		List<Class<? extends OEntity<?>>> entities = new ArrayList<>();
+		List<Class<? extends OEntity>> entities = new ArrayList<>();
 		entities.add(UserChief.class);
 		entities.add(UserProfile.class);
 		entities.add(Wallet.class);

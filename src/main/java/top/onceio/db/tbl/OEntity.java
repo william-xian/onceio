@@ -12,11 +12,11 @@ import top.onceio.db.annotation.Col;
  * @author Administrator
  *
  */
-public abstract class OEntity<ID> {
+public abstract class OEntity {
     @Col(nullable = false)
-	protected ID id;
+	private Long id;
     @Col(colDef="boolean default false",nullable = false)
-	protected transient Boolean rm;
+	private transient Boolean rm;
 	/** 用户存储额外数据，如 聚合函数 */
 	protected Map<String,Object> extra;
 	
@@ -26,16 +26,13 @@ public abstract class OEntity<ID> {
 	}
 	public void initId(){
 	}
-	public ID getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(ID id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
-	@SuppressWarnings("unchecked")
-	public void setOId(Object id) {
-		this.id = (ID)id;
-	}
+	
 	public Boolean getRm() {
 		return rm;
 	}

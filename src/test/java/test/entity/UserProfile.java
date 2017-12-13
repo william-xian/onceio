@@ -5,7 +5,7 @@ import top.onceio.db.annotation.Tbl;
 import top.onceio.db.tbl.OEntity;
 
 @Tbl(extend=UserChief.class)
-public class UserProfile extends OEntity<Long>{
+public class UserProfile extends OEntity{
     @Col(nullable = false, size=20)
 	private String nickname;
     @Col(nullable = false)

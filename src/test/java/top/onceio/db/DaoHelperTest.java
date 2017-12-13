@@ -35,7 +35,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		daoHelper.delete(UserChief.class, cnd);
 		
 	}
-	//@Test
+	@Test
 	public void insert_get_remove_delete() {
 		List<UserChief> ucs = new ArrayList<>();
 		List<Long> ids = new ArrayList<>();
@@ -145,7 +145,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		tpl.set().setId(uc1.getId());
 		tpl.add().setGenre(1);
 		daoHelper.updateByTpl(UserChief.class,tpl);
-		UserChief db1 = daoHelper.get(UserChief.class, (Long)tpl.getId());
+		UserChief db1 = daoHelper.get(UserChief.class, tpl.getId());
 		Assert.assertEquals(1,db1.getGenre().intValue());
 		UserChief db2 = daoHelper.get(UserChief.class, uc2.getId());
 		uc2.setRm(false);
@@ -186,12 +186,52 @@ public class DaoHelperTest extends DaoBaseTest{
 		Page<UserChief> page1 = daoHelper.find(UserChief.class, cnd4);
 		Assert.assertEquals(2,page1.getData().size());
 		Assert.assertEquals(6,page1.getTotal().longValue());
-		daoHelper.remove(UserChief.class, ids);
-		daoHelper.delete(UserChief.class, ids);
+		Cnd<UserChief> rm = new Cnd<>(UserChief.class);
+		rm.in(ids.toArray()).setId(Tpl.USING_LONG);
+		int cnt = daoHelper.remove(UserChief.class, rm);
+		System.out.println("removed - " + cnt);
+		cnt = daoHelper.delete(UserChief.class, ids);
+		System.out.println("delete - " + cnt);
 		
 	}
 	
-	//@Test
+	@Test
+	public void saveRemove() {
+		List<UserChief> ucs = new ArrayList<>();
+		List<Long> ids = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			UserChief uc = new UserChief();
+			uc.setId(IDGenerator.randomID());
+			uc.setName("name" + i + "-" + System.currentTimeMillis());
+			uc.setGenre(i % 4);
+			uc.setAvatar(String.format("avatar%d%d", i % 2, i % 3));
+			uc.setPasswd("passwd");
+			ucs.add(uc);
+		}
+		daoHelper.insert(ucs);
+		for (UserChief uc:ucs) {
+			ids.add(uc.getId());
+		}
+		System.out.println(OUtils.toJSON(ucs));
+		
+		Cnd<UserChief> rm = new Cnd<>(UserChief.class);
+		rm.in(ids.toArray()).setId(Tpl.USING_LONG);
+		int cnt = 0;
+
+		cnt = daoHelper.remove(UserChief.class, ids);
+		System.out.println("removed ids - " + cnt);
+		cnt = daoHelper.remove(UserChief.class, rm);
+		System.out.println("removed - " + cnt);
+		Cnd<UserChief> cnd = new Cnd<>(UserChief.class);
+		
+		cnt = (int)daoHelper.remove(UserChief.class, cnd);
+		System.out.println("removed - " + cnt);
+		
+		cnt = daoHelper.delete(UserChief.class, cnd);
+		System.out.println("delete - " + cnt);
+	}
+
+	@Test
 	public void having_group_orderby() {
 		List<UserChief> ucs = new ArrayList<>();
 		List<Long> ids = new ArrayList<>();

@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import javax.sql.DataSource;
 
 import top.onceio.exception.Failed;
+import top.onceio.util.OLog;
 
 public class JdbcHelper {
 	
@@ -23,7 +24,7 @@ public class JdbcHelper {
 		this.dataSource = dataSource;
 	}
 	
-	private ResultSet exec(String sql,Object[] args) {
+	public ResultSet call(String sql,Object[] args) {
 		Connection conn = null;
 		PreparedStatement stat = null;
 		ResultSet rs = null;
@@ -34,7 +35,7 @@ public class JdbcHelper {
 				Failed.throwError(e.getMessage());
 			}
 			try {
-				stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CONCUR_UPDATABLE);
+				stat = conn.prepareCall(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CONCUR_UPDATABLE);
 				if(args != null) {
 					for(int i = 0; i < args.length; i++ ){
 						stat.setObject(i+1, args[i]);
@@ -71,7 +72,7 @@ public class JdbcHelper {
 		if(dataSource != null) {
 			try {
 				conn = dataSource.getConnection();
-				conn.setAutoCommit(false);
+				//conn.setAutoCommit(false);
 			} catch (SQLException e) {
 				Failed.throwError(e.getMessage());
 			}
@@ -86,7 +87,7 @@ public class JdbcHelper {
 				}
 				stat.setMaxRows(args.size());
 				result = stat.executeBatch();
-				conn.commit();
+				//conn.commit();
 			} catch (SQLException e) {
 				e.printStackTrace();
 				Failed.throwMsg(e.getMessage());
@@ -201,26 +202,28 @@ public class JdbcHelper {
 		return batchExec(sql,batchArgs);
 	}
 	
-	public int update(String sql, Object... args) {
+	public int update(String sql, Object[] args) {
 		int cnt = 0;
 		Connection conn = null;
 		PreparedStatement stat = null;
 		if(dataSource != null) {
 			try {
 				conn = dataSource.getConnection();
+				//conn.setAutoCommit(false);
 			} catch (SQLException e) {
 				e.printStackTrace();
 				Failed.throwError(e.getMessage());
 			}
 			try {
-				stat = conn.prepareStatement(sql, ResultSet.FETCH_FORWARD, ResultSet.CONCUR_READ_ONLY);
+				stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CLOSE_CURSORS_AT_COMMIT);
+				OLog.debug("%s ", sql);
 				if(args != null) {
 					for(int i = 0; i < args.length; i++ ){
 						stat.setObject(i+1, args[i]);
 					}
 				}
-				cnt =  stat.executeUpdate();
-				
+				cnt = stat.executeUpdate();
+				//conn.commit();
 			} catch (SQLException e) {
 				e.printStackTrace();
 				Failed.throwMsg(e.getMessage());

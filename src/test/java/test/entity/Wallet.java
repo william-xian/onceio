@@ -6,7 +6,7 @@ import top.onceio.db.tbl.OEntity;
 
 
 @Tbl(extend=UserChief.class,autoCreate=true)
-public class Wallet extends OEntity<Long>{
+public class Wallet extends OEntity{
     @Col(nullable = true)
 	private int balance;
     @Col(nullable = true)
