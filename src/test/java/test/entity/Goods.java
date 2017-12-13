@@ -5,7 +5,7 @@ import top.onceio.db.annotation.Tbl;
 import top.onceio.db.tbl.OEntity;
 
 @Tbl
-public class Goods extends OEntity{
+public class Goods extends OEntity<Long>{
 	
 	@Col(size = 32,nullable = true)
 	private String name;

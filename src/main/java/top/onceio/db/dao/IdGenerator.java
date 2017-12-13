@@ -1,5 +1,5 @@
 package top.onceio.db.dao;
 
-public interface IdGenerator {
-	Long next(Class<?> entityClass);
+public interface IdGenerator<ID> {
+	ID next(Class<?> entityClass);
 }

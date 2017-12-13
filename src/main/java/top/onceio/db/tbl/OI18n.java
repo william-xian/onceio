@@ -6,7 +6,7 @@ import top.onceio.db.annotation.Tbl;
 import top.onceio.util.OUtils;
 
 @Tbl
-public class OI18n extends OEntity{
+public class OI18n extends OEntity<String>{
     @Col(size=64,nullable = false)
 	private String key;
 	@Col(size=255,nullable=false)

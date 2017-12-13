@@ -43,6 +43,7 @@ public class Main {
 		rs.close();
 		stat.close();
 		conn.close();
+		ds.close();
 	}
 	
 }

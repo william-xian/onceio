@@ -36,10 +36,7 @@ public class StartupRunner {
         Iterator<OI18n> iter = i18ns.getData().iterator();
         while(iter.hasNext()) {
         	OI18n i = iter.next();
-        	
-        	//TODO 
-        	//dao.get(i.getId());
-        	//dao.fetch()
+        	dao.get(i.getId());
         }
     }
     private void annlysisI18nMsg(){
@@ -56,8 +53,7 @@ public class StartupRunner {
 					OI18n i18n = dao.get(id);
 					if(i18n == null) {
 						i18n = new OI18n();
-						//i18n.setId(id); TODO
-						i18n.setKey(id);
+						i18n.setId(id);
 						i18n.setName(name);
 						i18ns.add(i18n);
 					}
@@ -86,8 +82,7 @@ public class StartupRunner {
 					OI18n i18n = dao.get(id);
 					if(i18n == null) {
 						i18n = new OI18n();
-						//i18n.setId(id); TODO
-						i18n.setKey(id);
+						i18n.setId(id);
 						i18n.setName(name);
 						i18n.setVal(val);
 			        	OLog.debug("add: " + i18n);

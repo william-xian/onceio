@@ -12,9 +12,9 @@ import top.onceio.db.annotation.Col;
  * @author Administrator
  *
  */
-public abstract class OEntity {
+public abstract class OEntity<ID> {
     @Col(nullable = false)
-	private Long id;
+	private ID id;
     @Col(colDef="boolean default false",nullable = false)
 	private transient Boolean rm;
 	/** 用户存储额外数据，如 聚合函数 */
@@ -26,10 +26,10 @@ public abstract class OEntity {
 	}
 	public void initId(){
 	}
-	public Long getId() {
+	public ID getId() {
 		return id;
 	}
-	public void setId(Long id) {
+	public void setId(ID id) {
 		this.id = id;
 	}
 	

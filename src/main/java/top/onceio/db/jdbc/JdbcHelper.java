@@ -83,7 +83,6 @@ public class JdbcHelper {
 						stat.setObject(i+1, arr[i]);
 					}
 					stat.addBatch();
-					
 				}
 				stat.setMaxRows(args.size());
 				result = stat.executeBatch();

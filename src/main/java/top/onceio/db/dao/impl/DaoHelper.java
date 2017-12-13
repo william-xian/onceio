@@ -27,19 +27,20 @@ import top.onceio.db.tbl.OEntity;
 import top.onceio.db.tbl.OTableMeta;
 import top.onceio.exception.Failed;
 import top.onceio.exception.VolidateFailed;
+import top.onceio.util.IDGenerator;
 import top.onceio.util.OAssert;
 import top.onceio.util.OLog;
 import top.onceio.util.OUtils;
 
-public class DaoHelper {
+public class DaoHelper<ID> {
 	private JdbcHelper jdbcHelper;
 	private Map<String,TableMeta> tableToTableMeta;
-	private IdGenerator idGenerator;
-	private List<Class<? extends OEntity>> entities;
+	private IdGenerator<ID> idGenerator;
+	private List<Class<? extends OEntity<?>>> entities;
 	public DaoHelper(){
 	}
 	
-	public DaoHelper(JdbcHelper jdbcHelper, IdGenerator idGenerator,List<Class<? extends OEntity>> entitys) {
+	public DaoHelper(JdbcHelper jdbcHelper, IdGenerator<ID> idGenerator,List<Class<? extends OEntity<?>>> entitys) {
 		super();
 		init(jdbcHelper,idGenerator,entitys);
 	}
@@ -53,7 +54,7 @@ public class DaoHelper {
 		}
 	}
 	
-	public void init(JdbcHelper jdbcHelper,IdGenerator idGenerator,List<Class<? extends OEntity>> entities) {
+	public void init(JdbcHelper jdbcHelper,IdGenerator<ID> idGenerator,List<Class<? extends OEntity<?>>> entities) {
 		this.jdbcHelper = jdbcHelper;
 		this.idGenerator = idGenerator;
 		this.tableToTableMeta = new HashMap<>();
@@ -82,7 +83,7 @@ public class DaoHelper {
 		if(entities != null) {
 			this.entities = entities;
 			Map<String,List<String>> tblSqls = new HashMap<>();
-			for(Class<? extends OEntity> tbl:entities) {
+			for(Class<? extends OEntity<?>> tbl:entities) {
 				List<String> sqls = this.createOrUpdate(tbl);
 				if(sqls != null && !sqls.isEmpty()) {
 					tblSqls.put(tbl.getSimpleName(), sqls);
@@ -122,15 +123,15 @@ public class DaoHelper {
 		}
 	}
 
-	public List<Class<? extends OEntity>> getEntities() {
+	public List<Class<? extends OEntity<?>>> getEntities() {
 		return entities;
 	}
 
-	public IdGenerator getIdGenerator() {
+	public IdGenerator<ID> getIdGenerator() {
 		return idGenerator;
 	}
 
-	public void setIdGenerator(IdGenerator idGenerator) {
+	public void setIdGenerator(IdGenerator<ID> idGenerator) {
 		this.idGenerator = idGenerator;
 	}
 
@@ -153,7 +154,7 @@ public class DaoHelper {
 	private void save(OTableMeta ootm,String name,String val) {
 		if(ootm == null) {
 			ootm = new OTableMeta();
-			ootm.setId(idGenerator.next(OTableMeta.class));
+			ootm.setId(IDGenerator.randomID());
 			ootm.setName(name);
 			ootm.setVal(val);
 			ootm.setCreatetime(System.currentTimeMillis());
@@ -164,7 +165,7 @@ public class DaoHelper {
 		}
 	}
 	
-	public <E extends OEntity> List<String> createOrUpdate(Class<E> tbl) {
+	public <E extends OEntity<?>> List<String> createOrUpdate(Class<E> tbl) {
 		TableMeta old = tableToTableMeta.get(tbl.getSimpleName());
 		if(old == null) {
 			old = TableMeta.createBy(tbl);
@@ -183,7 +184,7 @@ public class DaoHelper {
 		return null;
 	}
 
-	public <E extends OEntity> boolean drop(Class<E> tbl) {
+	public <E extends OEntity<?>> boolean drop(Class<E> tbl) {
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		if(tm == null) {
 			return false;
@@ -201,7 +202,7 @@ public class DaoHelper {
 		return jdbcHelper.batchUpdate(sql, batchArgs);
 	}
 	
-	public static <E extends OEntity> E createBy(Class<E> tbl,TableMeta tm,ResultSet rs) throws SQLException {
+	public static <E extends OEntity<?>> E createBy(Class<E> tbl,TableMeta tm,ResultSet rs) throws SQLException {
 		E row = null;
 		try {
 			row = tbl.newInstance();
@@ -229,7 +230,7 @@ public class DaoHelper {
 		return row;
 	}
 	
-	public <E extends OEntity> E get(Class<E> tbl,Long id) {
+	public <E extends OEntity<ID>> E get(Class<E> tbl,ID id) {
 		Cnd<E> cnd = new Cnd<E>(tbl);
 		cnd.setPage(1);
 		cnd.setPageSize(1);
@@ -241,7 +242,7 @@ public class DaoHelper {
 		return null;
 	}
 	
-	public <E extends OEntity> E insert(E entity) {
+	public <E extends OEntity<?>> E insert(E entity) {
 		OAssert.warnning(entity != null,"不可以插入null");
 		Class<?> tbl = entity.getClass();
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());	
@@ -287,7 +288,7 @@ public class DaoHelper {
 		}
 		
 	}
-	public <E extends OEntity> int insert(List<E> entities) {
+	public <E extends OEntity<ID>> int insert(List<E> entities) {
 		OAssert.warnning(entities != null && !entities.isEmpty(),"不可以插入null");
 		Class<?> tbl = entities.get(0).getClass();
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
@@ -296,7 +297,7 @@ public class DaoHelper {
 		for(E entity:entities) {
 			validate(tm,entity,false);
 			if(entity.getId() == null) {
-				Long id = idGenerator.next(tbl);
+				ID id = idGenerator.next(tbl);
 				entity.setId(id);
 			}
 		}
@@ -322,7 +323,7 @@ public class DaoHelper {
 		return cnt;
 	}
 
-	private <E extends OEntity> int update(E entity,boolean ignoreNull) {
+	private <E extends OEntity<?>> int update(E entity,boolean ignoreNull) {
 		OAssert.warnning(entity != null,"不可以插入null");
 		Class<?> tbl = entity.getClass();
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
@@ -344,16 +345,16 @@ public class DaoHelper {
 	}
 
 
-	public <E extends OEntity> int update(E entity) {
+	public <E extends OEntity<?>> int update(E entity) {
 		return update(entity,false);
 	}
 	
-	public <E extends OEntity> int updateIgnoreNull(E entity) {
+	public <E extends OEntity<?>> int updateIgnoreNull(E entity) {
 		return update(entity,true);	
 	}
 	
 	
-	public <E extends OEntity> int updateByTpl(Class<E> tbl, UpdateTpl<E> tpl) {
+	public <E extends OEntity<?>> int updateByTpl(Class<E> tbl, UpdateTpl<E> tpl) {
 		OAssert.warnning(tpl.getId() != null && tpl != null,"Are you sure to update a null value?");
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());	
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
@@ -366,7 +367,7 @@ public class DaoHelper {
 		return jdbcHelper.update(sql, vals.toArray());
 	}
 	
-	public <E extends OEntity> int updateByTplCnd(Class<E> tbl,UpdateTpl<E> tpl,Cnd<E> cnd) {
+	public <E extends OEntity<?>> int updateByTplCnd(Class<E> tbl,UpdateTpl<E> tpl,Cnd<E> cnd) {
 		OAssert.warnning(tpl != null,"Are you sure to update a null value?");
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());	
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
@@ -383,7 +384,7 @@ public class DaoHelper {
 		return jdbcHelper.update(sql, vals.toArray());
 	}
 
-	public <E extends OEntity> int remove(Class<E> tbl,Long id) {
+	public <E extends OEntity<?>> int remove(Class<E> tbl,Long id) {
 		if(id == null) return 0;
 		OAssert.warnning(id != null,"ID不能为null");
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
@@ -400,7 +401,7 @@ public class DaoHelper {
 		OLog.debug(sql);
 		return jdbcHelper.update(sql, ids.toArray());
 	}
-	public <E extends OEntity> int remove(Class<E> tbl, Cnd<E> cnd) {
+	public <E extends OEntity<?>> int remove(Class<E> tbl, Cnd<E> cnd) {
 		if(cnd == null) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		List<Object> sqlArgs = new ArrayList<>();
@@ -425,7 +426,7 @@ public class DaoHelper {
 		return jdbcHelper.update(sql, ids.toArray());
 	}
 	
-	public <E extends OEntity> int delete(Class<E> tbl, Cnd<E> cnd) {
+	public <E extends OEntity<?>> int delete(Class<E> tbl, Cnd<E> cnd) {
 		if (cnd == null) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		List<Object> sqlArgs = new ArrayList<>();
@@ -437,15 +438,15 @@ public class DaoHelper {
 		return jdbcHelper.update(sql, sqlArgs.toArray());
 	}
 
-	public <E extends OEntity> long count(Class<E> tbl) {
+	public <E extends OEntity<?>> long count(Class<E> tbl) {
 		return count(tbl,null,new Cnd<E>(tbl));
 	}
 	
-	public <E extends OEntity> long count(Class<E> tbl, Cnd<E> cnd) {
+	public <E extends OEntity<?>> long count(Class<E> tbl, Cnd<E> cnd) {
 		return count(tbl,null,cnd);
 	}
 	
-	public <E extends OEntity> long count(Class<E> tbl, SelectTpl<E> tpl, Cnd<E> cnd) {
+	public <E extends OEntity<?>> long count(Class<E> tbl, SelectTpl<E> tpl, Cnd<E> cnd) {
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		List<Object> sqlArgs = new ArrayList<>();
@@ -454,10 +455,10 @@ public class DaoHelper {
 		return jdbcHelper.queryForObject(sql,sqlArgs.toArray(new Object[0]), Long.class);
 	}
 
-	public <E extends OEntity> Page<E> find(Class<E> tbl,Cnd<E> cnd) {
+	public <E extends OEntity<?>> Page<E> find(Class<E> tbl,Cnd<E> cnd) {
 		return find(tbl,null,cnd);
 	}
-	public <E extends OEntity> Page<E> find(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd) {
+	public <E extends OEntity<?>> Page<E> find(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd) {
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		Page<E> page = new Page<E>();
@@ -501,7 +502,7 @@ public class DaoHelper {
 		return page;
 	}
 
-	public <E extends OEntity> E fetch(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd) {
+	public <E extends OEntity<?>> E fetch(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd) {
 		if(cnd == null) {
 			cnd = new Cnd<E>(tbl);
 		}
@@ -514,7 +515,7 @@ public class DaoHelper {
 		return null;
 	}
 	
-	public <E extends OEntity> void download(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd, Consumer<E> consumer) {
+	public <E extends OEntity<?>> void download(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd, Consumer<E> consumer) {
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		if(tm == null) {
 			return ;
@@ -535,7 +536,7 @@ public class DaoHelper {
 		});
 	}
 	
-	public <E extends OEntity> List<E> findByIds(Class<E> tbl, List<Long> ids) {
+	public <E extends OEntity<?>> List<E> findByIds(Class<E> tbl, List<Long> ids) {
 		if(ids == null || ids.isEmpty()) {
 			return new ArrayList<E>();
 		}

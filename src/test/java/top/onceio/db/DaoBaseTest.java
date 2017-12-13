@@ -27,7 +27,7 @@ import top.onceio.util.IDGenerator;
 public class DaoBaseTest {
 	protected static final JdbcHelper jdbcHelper = new JdbcHelper();
 
-	protected static final DaoHelper daoHelper = new DaoHelper();
+	protected static final DaoHelper<Long> daoHelper = new DaoHelper<Long>();
 	
 	public static void initDao() {
 		try {
@@ -46,7 +46,7 @@ public class DaoBaseTest {
 		ds.setMaxActive(Integer.parseInt(maxActive));
 		jdbcHelper.setDataSource(ds);
 		System.out.println("loaded jdbcTemplate");
-		IdGenerator idGenerator = new IdGenerator() {
+		IdGenerator<Long> idGenerator = new IdGenerator<Long>() {
 			@Override
 			public Long next(Class<?> entityClass) {
 				return IDGenerator.randomID();
@@ -54,7 +54,7 @@ public class DaoBaseTest {
 			
 		};
 		DDHoster.upgrade();
-		List<Class<? extends OEntity>> entities = new ArrayList<>();
+		List<Class<? extends OEntity<?>>> entities = new ArrayList<>();
 		entities.add(UserChief.class);
 		entities.add(UserProfile.class);
 		entities.add(Wallet.class);
@@ -64,6 +64,7 @@ public class DaoBaseTest {
 		entities.add(GoodsOrder.class);
 		entities.add(GoodsShipping.class);
 		entities.add(GoodsOrderView.class);
+		
 		entities.add(OI18n.class);
 		
 		daoHelper.init(jdbcHelper, idGenerator,entities);
