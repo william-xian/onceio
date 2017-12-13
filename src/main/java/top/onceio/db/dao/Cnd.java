@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -19,10 +21,10 @@ import top.onceio.db.dao.tpl.Tpl;
 import top.onceio.db.meta.ColumnMeta;
 import top.onceio.db.meta.DDEngine;
 import top.onceio.db.meta.TableMeta;
-import top.onceio.util.OLog;
 import top.onceio.util.OUtils;
 
-public class Cnd<E> extends Tpl{
+public class Cnd<E> extends Tpl {
+	private static final Logger LOGGER = Logger.getLogger(Cnd.class);
 	private Integer page;
 	private Integer pageSize;
 	private E pageArg;
@@ -195,7 +197,7 @@ public class Cnd<E> extends Tpl{
 					default:
 				}	
 			}else {
-				OLog.warn("查询条件是空的");
+				LOGGER.warn("查询条件是空的");
 			}
 		}
 		return self.toString();

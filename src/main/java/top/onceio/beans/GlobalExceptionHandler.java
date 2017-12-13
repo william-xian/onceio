@@ -6,16 +6,17 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
+
 import top.onceio.db.dao.Dao;
 import top.onceio.db.tbl.OI18n;
 import top.onceio.exception.Failed;
-import top.onceio.util.OLog;
 import top.onceio.util.OUtils;
 
 
 
 public class GlobalExceptionHandler {
-	
+	private static final Logger LOGGER = Logger.getLogger(GlobalExceptionHandler.class);
 	Dao<OI18n,String> dao;
  
 	public Map<String,Object> failedHandler(HttpServletRequest req, Failed failed) throws Exception {
@@ -30,7 +31,7 @@ public class GlobalExceptionHandler {
         	}
     	}
     	String msg  = String.format(defaultFromat, failed.getArgs());
-    	OLog.error(String.format("Host %s invokes url %s ERROR: %s", req.getRemoteHost(), req.getRequestURL(), msg));
+    	LOGGER.error(String.format("Host %s invokes url %s ERROR: %s", req.getRemoteHost(), req.getRequestURL(), msg));
         Map<String,Object> result = new HashMap<>();
         if(failed.getData() != null) {
         	result.put("data", failed.getData());	
@@ -50,7 +51,7 @@ public class GlobalExceptionHandler {
     }
  
     public Map<String,String> defaultErrorHandler(HttpServletRequest req, Exception e) throws Exception {
-    	OLog.error(String.format("Host %s invokes url %s ERROR: %s", req.getRemoteHost(), req.getRequestURL(), e.getMessage()));
+    	LOGGER.error(String.format("Host %s invokes url %s ERROR: %s", req.getRemoteHost(), req.getRequestURL(), e.getMessage()));
         Map<String,String> result = new HashMap<>();
     	result.put("error", e.getMessage());
         return result;

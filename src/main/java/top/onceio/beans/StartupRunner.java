@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import top.onceio.annotation.I18nCfg;
 import top.onceio.annotation.I18nCfgBrief;
 import top.onceio.annotation.I18nMsg;
@@ -15,12 +17,12 @@ import top.onceio.db.dao.Page;
 import top.onceio.db.tbl.OI18n;
 import top.onceio.exception.Failed;
 import top.onceio.util.AnnotationScanner;
-import top.onceio.util.OLog;
 import top.onceio.util.OReflectUtil;
 import top.onceio.util.OUtils;
 
 
 public class StartupRunner {
+	private static final Logger LOGGER = Logger.getLogger(StartupRunner.class);
     //@Autowired
     private Dao<OI18n,String> dao;
     //@Value("${cn.dls.packages}")
@@ -85,19 +87,19 @@ public class StartupRunner {
 						i18n.setId(id);
 						i18n.setName(name);
 						i18n.setVal(val);
-			        	OLog.debug("add: " + i18n);
+						LOGGER.debug("add: " + i18n);
 			        	i18ns.add(i18n);
 					}else {
 						/** The val depend on database */
 						if(!val.equals(i18n.getVal())){
 							i18n.setVal(val);
 							field.set(null, OReflectUtil.strToBaseType(field.getType(), val));
-				        	OLog.debug("reload: " + i18n);
+							LOGGER.debug("reload: " + i18n);
 						}
 						if(!i18n.getName().equals(name) ){
 							i18n.setName(name);
 							dao.insert(i18n);
-				        	OLog.debug("update: " + i18n);
+							LOGGER.debug("update: " + i18n);
 						}
 					}
 				} catch (IllegalArgumentException | IllegalAccessException e) {
@@ -109,7 +111,7 @@ public class StartupRunner {
     }
     
     public void run(String... args) throws Exception {
-        OLog.info("dls framework runner " + OUtils.toJSON(args));
+    	LOGGER.info("dls framework runner " + OUtils.toJSON(args));
         if(packages != null && !packages.trim().equals("")){
         	annotations.scanPackages(packages.split(","));
         }

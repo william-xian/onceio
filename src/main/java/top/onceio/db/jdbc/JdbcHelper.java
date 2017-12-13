@@ -10,10 +10,12 @@ import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
+
 import top.onceio.exception.Failed;
-import top.onceio.util.OLog;
 
 public class JdbcHelper {
+	private static final Logger LOGGER = Logger.getLogger(JdbcHelper.class);
 	
 	private DataSource dataSource;
 
@@ -215,7 +217,7 @@ public class JdbcHelper {
 			}
 			try {
 				stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CLOSE_CURSORS_AT_COMMIT);
-				OLog.debug("%s ", sql);
+				LOGGER.debug(sql);
 				if(args != null) {
 					for(int i = 0; i < args.length; i++ ){
 						stat.setObject(i+1, args[i]);

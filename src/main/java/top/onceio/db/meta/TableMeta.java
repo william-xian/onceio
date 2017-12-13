@@ -10,17 +10,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import top.onceio.db.annotation.Col;
 import top.onceio.db.annotation.Constraint;
 import top.onceio.db.annotation.ConstraintType;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
 import top.onceio.util.OAssert;
-import top.onceio.util.OLog;
 import top.onceio.util.OReflectUtil;
 import top.onceio.util.OUtils;
 
 public class TableMeta {
+	private static final Logger LOGGER = Logger.getLogger(TableMeta.class);
 	String table;
 	String extend;
 	String entityName;
@@ -133,7 +135,7 @@ public class TableMeta {
 				}	
 			}
 			if(!missed.isEmpty()) {
-				OLog.warn("以下字段没有加载到Field %s", OUtils.toJSON(missed));
+				LOGGER.warn(String.format("以下字段没有加载到Field %s", OUtils.toJSON(missed)));
 			}
 		} catch (ClassNotFoundException e) {
 			OAssert.fatal("无法加载 %s", entityName);

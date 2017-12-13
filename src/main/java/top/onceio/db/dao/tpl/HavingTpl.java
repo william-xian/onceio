@@ -3,7 +3,7 @@ package top.onceio.db.dao.tpl;
 import java.util.ArrayList;
 import java.util.List;
 
-import top.onceio.util.OLog;
+import org.apache.log4j.Logger;
 
 
 
@@ -11,10 +11,11 @@ import top.onceio.util.OLog;
  * @author xian
  * @param <E>
  * 
- * 
- * 
  */
 public class HavingTpl<E> extends FuncTpl<E>{
+
+	private static final Logger LOGGER = Logger.getLogger(HavingTpl.class);
+
 	private List<Object> args = new ArrayList<>();
 	private List<String> opts = new ArrayList<>();
 	private List<String> logics = new ArrayList<>();
@@ -108,7 +109,7 @@ public class HavingTpl<E> extends FuncTpl<E>{
 			if(!extSql.equals("")) {
 				sb.append(String.format("%s (%s)", extLogic,extTpls.get(i).sql(sqlArgs)));	
 			}else {
-				OLog.warn("the sql of having's %s is empty", extLogic);
+				LOGGER.warn(String.format("the sql of having's %s is empty", extLogic));
 			}
 		}
 		return sb.toString();

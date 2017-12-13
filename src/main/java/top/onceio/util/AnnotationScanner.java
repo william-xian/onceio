@@ -24,7 +24,7 @@ public class AnnotationScanner {
 	private final Map<Class<?>,Set<Class<?>>> annotations = new HashMap<>();
     
     public void scanPackages(String ...packages){
-    	OLog.info("dls scan packages:" + packages);
+    	
 		ClassScanner.findBy(new Consumer<Class<?>> (){
 
 			@Override

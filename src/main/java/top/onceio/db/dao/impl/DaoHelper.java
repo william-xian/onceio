@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.apache.log4j.Logger;
 import org.springframework.dao.DataAccessException;
 
 import top.onceio.OConfig;
@@ -29,10 +30,11 @@ import top.onceio.exception.Failed;
 import top.onceio.exception.VolidateFailed;
 import top.onceio.util.IDGenerator;
 import top.onceio.util.OAssert;
-import top.onceio.util.OLog;
 import top.onceio.util.OUtils;
 
 public class DaoHelper<ID> {
+	private static final Logger LOGGER = Logger.getLogger(DaoHelper.class);
+	
 	private JdbcHelper jdbcHelper;
 	private Map<String,TableMeta> tableToTableMeta;
 	private IdGenerator<ID> idGenerator;
@@ -270,7 +272,7 @@ public class DaoHelper<ID> {
 			try {
 				val = cm.getField().get(obj);
 			} catch (IllegalArgumentException | IllegalAccessException e) {
-				OLog.info(e.getMessage());
+				LOGGER.info(e.getMessage());
 			}
 			if(!cm.isNullable() && val == null && !ignoreNull) {
 				VolidateFailed vf = VolidateFailed.createError("%s cannot be null", cm.getName());
@@ -310,7 +312,6 @@ public class DaoHelper<ID> {
 		
 		String stub = OUtils.genStub("?",",",names.size());
 		String sql = String.format("INSERT INTO %s(%s) VALUES(%s);", tm.getTable(),String.join(",", names),stub);
-		OLog.debug("%s\n",sql);
 		List<Object[]> vals = new ArrayList<>(valsList.size());
 		for(int i = 0;  i < valsList.size(); i++) {
 			vals.add(valsList.get(i).toArray());
@@ -398,7 +399,7 @@ public class DaoHelper<ID> {
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
 		String stub = OUtils.genStub("?",",",ids.size());
 		String sql = String.format("UPDATE %s SET rm=true WHERE rm = false AND id IN (%s)", tm.getTable(),stub);
-		OLog.debug(sql);
+		LOGGER.debug(sql);
 		return jdbcHelper.update(sql, ids.toArray());
 	}
 	public <E extends OEntity<?>> int remove(Class<E> tbl, Cnd<E> cnd) {
@@ -451,7 +452,7 @@ public class DaoHelper<ID> {
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		List<Object> sqlArgs = new ArrayList<>();
 		String sql = cnd.countSql(tm, tpl, sqlArgs);
-		OLog.debug(sql);
+		LOGGER.debug(sql);
 		return jdbcHelper.queryForObject(sql,sqlArgs.toArray(new Object[0]), Long.class);
 	}
 
@@ -482,7 +483,7 @@ public class DaoHelper<ID> {
 		if(page.getTotal() == null || page.getTotal() > 0) {
 			List<Object> sqlArgs = new ArrayList<>();
 			String sql = cnd.pageSql(tm,tpl,sqlArgs);
-			OLog.debug(sql);
+			LOGGER.debug(sql);
 			List<E> data = new ArrayList<>();
 			jdbcHelper.query(sql,sqlArgs.toArray(), new Consumer<ResultSet>() {
 				@Override
