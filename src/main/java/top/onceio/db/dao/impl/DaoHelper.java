@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.log4j.Logger;
-import org.springframework.dao.DataAccessException;
 
 import top.onceio.OConfig;
 import top.onceio.db.annotation.ConstraintType;
@@ -196,11 +195,11 @@ public class DaoHelper<ID> {
 		return true;
 	}
 
-	public int[] batchUpdate(final String... sql) throws DataAccessException {
+	public int[] batchUpdate(final String... sql) {
 		return jdbcHelper.batchUpdate(sql);
 	}
 	
-	public int[] batchUpdate(final String sql,List<Object[]> batchArgs) throws DataAccessException {
+	public int[] batchUpdate(final String sql,List<Object[]> batchArgs) {
 		return jdbcHelper.batchUpdate(sql, batchArgs);
 	}
 	
