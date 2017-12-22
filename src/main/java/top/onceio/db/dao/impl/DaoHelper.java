@@ -69,7 +69,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 			}
 		}
 		TableMeta tm = TableMeta.createBy(OTableMeta.class);
-		tableToTableMeta.put(tm.getTable(), tm);
+		tableToTableMeta.put(tm.getTable().toLowerCase(), tm);
 		Cnd<OTableMeta> cnd = new Cnd<>(OTableMeta.class);
 		cnd.setPage(1);
 		cnd.setPageSize(Integer.MAX_VALUE);
@@ -82,7 +82,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 			old.getFieldConstraint();
 			old.freshConstraintMetaTable();
 			old.freshNameToField();
-			tableToTableMeta.put(old.getTable(), old);
+			tableToTableMeta.put(old.getTable().toLowerCase(), old);
 		}
 		if(entities != null) {
 			this.entities = entities;
@@ -115,7 +115,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 	private void sorted(String tbl,List<String> order) {
 		if(!order.contains(tbl)) {
-			TableMeta tblMeta = tableToTableMeta.get(tbl);
+			TableMeta tblMeta = tableToTableMeta.get(tbl.toLowerCase());
 			if(tblMeta != null) {
 				for(ConstraintMeta cm:tblMeta.getFieldConstraint()) {
 					if(cm.getType().equals(ConstraintType.FOREGIN_KEY)) {
@@ -170,18 +170,18 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 	
 	public <E extends OEntity<?>> List<String> createOrUpdate(Class<E> tbl) {
-		TableMeta old = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta old = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		if(old == null) {
 			old = TableMeta.createBy(tbl);
 			List<String> sqls = old.createTableSql();
-			tableToTableMeta.put(old.getTable(), old);
+			tableToTableMeta.put(old.getTable().toLowerCase(), old);
 			return sqls;
 		}else {
 			TableMeta tm = TableMeta.createBy(tbl);
 			if(old.equals(tm)){
 			} else {
 				List<String> sqls = old.upgradeTo(tm);
-				tableToTableMeta.put(tm.getTable(), tm);
+				tableToTableMeta.put(tm.getTable().toLowerCase(), tm);
 				return sqls;
 			}
 		}
@@ -189,7 +189,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 
 	public <E extends OEntity<?>> boolean drop(Class<E> tbl) {
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		if(tm == null) {
 			return false;
 		}
@@ -276,7 +276,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	public <E extends OEntity<?>> E insert(E entity) {
 		OAssert.warnning(entity != null,"不可以插入null");
 		Class<?> tbl = entity.getClass();
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());	
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());	
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		validate(tm,entity,false);
 		TblIdNameVal<E> idNameVal = new TblIdNameVal<>(tm.getColumnMetas(),Arrays.asList(entity));
@@ -322,7 +322,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	public <E extends OEntity<ID>> int insert(List<E> entities) {
 		OAssert.warnning(entities != null && !entities.isEmpty(),"不可以插入null");
 		Class<?> tbl = entities.get(0).getClass();
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		
 		for(E entity:entities) {
@@ -356,7 +356,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	private <E extends OEntity<?>> int update(E entity,boolean ignoreNull) {
 		OAssert.warnning(entity != null,"不可以插入null");
 		Class<?> tbl = entity.getClass();
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		validate(tm,entity,ignoreNull);
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		TblIdNameVal<E> idNameVal = new TblIdNameVal<>(tm.getColumnMetas(),Arrays.asList(entity));
@@ -386,7 +386,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	
 	public <E extends OEntity<?>> int updateByTpl(Class<E> tbl, UpdateTpl<E> tpl) {
 		OAssert.warnning(tpl.getId() != null && tpl != null,"Are you sure to update a null value?");
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());	
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());	
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		//validate(tm,tpl,false);
 		String setTpl = tpl.getSetTpl();
@@ -399,7 +399,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	
 	public <E extends OEntity<?>> int updateByTplCnd(Class<E> tbl,UpdateTpl<E> tpl,Cnd<E> cnd) {
 		OAssert.warnning(tpl != null,"Are you sure to update a null value?");
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());	
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());	
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		//validate(tm,tpl,false);
 		List<Object> vals = new ArrayList<>();
@@ -417,7 +417,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	public <E extends OEntity<?>> int remove(Class<E> tbl,Long id) {
 		if(id == null) return 0;
 		OAssert.warnning(id != null,"ID不能为null");
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		String sql = String.format("UPDATE %s SET rm=true WHERE id=?", tm.getTable());
 		return jdbcHelper.update(sql, new Object[]{id});
@@ -425,7 +425,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 
 	public <E> int remove(Class<E> tbl, List<Long> ids) {
 		if(ids == null || ids.isEmpty()) return 0;
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String stub = OUtils.genStub("?",",",ids.size());
 		String sql = String.format("UPDATE %s SET rm=true WHERE rm = false AND id IN (%s)", tm.getTable(),stub);
 		LOGGER.debug(sql);
@@ -433,7 +433,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 	public <E extends OEntity<?>> int remove(Class<E> tbl, Cnd<E> cnd) {
 		if(cnd == null) return 0;
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		List<Object> sqlArgs = new ArrayList<>();
 		String whereCnd = cnd.whereSql(sqlArgs);
 		String sql = String.format("UPDATE %s SET rm=true WHERE rm=false AND %s", tm.getTable(),whereCnd);
@@ -444,13 +444,13 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 	public <E> int delete(Class<E> tbl, Long id) {
 		if(id == null) return 0;
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String sql = String.format("DELETE FROM %s WHERE id=? AND rm=true", tm.getTable());
 		return jdbcHelper.update(sql, new Object[]{id});
 	}
 	public <E> int delete(Class<E> tbl, List<Long> ids) {
 		if(ids == null || ids.isEmpty()) return 0;
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String stub = OUtils.genStub("?", ",", ids.size());
 		String sql = String.format("DELETE FROM %s WHERE (rm=true) AND id IN (%s) ", tm.getTable(),stub);
 		return jdbcHelper.update(sql, ids.toArray());
@@ -458,7 +458,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	
 	public <E extends OEntity<?>> int delete(Class<E> tbl, Cnd<E> cnd) {
 		if (cnd == null) return 0;
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		List<Object> sqlArgs = new ArrayList<>();
 		String whereCnd = cnd.whereSql(sqlArgs);
 		String sql = String.format("DELETE FROM %s WHERE rm=true AND %s;", tm.getTable(), whereCnd);
@@ -477,7 +477,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 	
 	public <E extends OEntity<?>> long count(Class<E> tbl, SelectTpl<E> tpl, Cnd<E> cnd) {
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		List<Object> sqlArgs = new ArrayList<>();
 		String sql = cnd.countSql(tm, tpl, sqlArgs);
@@ -489,7 +489,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		return find(tbl,null,cnd);
 	}
 	public <E extends OEntity<?>> Page<E> find(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd) {
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		Page<E> page = new Page<E>();
 		if(cnd.getPage() == null || cnd.getPage() <= 0) {
@@ -546,7 +546,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 	
 	public <E extends OEntity<?>> void download(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd, Consumer<E> consumer) {
-		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName());
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		if(tm == null) {
 			return ;
 		}
