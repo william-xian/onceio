@@ -47,7 +47,7 @@ public class OFailed extends Exception{
 	public void setData(Object data) {
 		this.data = data;
 	}
-	public static OFailed wrap(Exception e) {
+	public static OFailed wrap(Throwable e) {
 		OFailed oe = new OFailed(e.getMessage());
 		return oe;
 	}

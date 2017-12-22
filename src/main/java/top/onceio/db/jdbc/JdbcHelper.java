@@ -1,9 +1,12 @@
 package top.onceio.db.jdbc;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -15,7 +18,10 @@ import org.apache.log4j.Logger;
 import top.onceio.exception.Failed;
 
 public class JdbcHelper {
+	
 	private static final Logger LOGGER = Logger.getLogger(JdbcHelper.class);
+	
+    private static ThreadLocal<Connection> trans = new ThreadLocal<Connection>();
 	
 	private DataSource dataSource;
 
@@ -26,16 +32,121 @@ public class JdbcHelper {
 		this.dataSource = dataSource;
 	}
 	
-	public ResultSet call(String sql,Object[] args) {
-		Connection conn = null;
-		PreparedStatement stat = null;
-		ResultSet rs = null;
-		if(dataSource != null) {
-			try {
+    /**
+     * Attempts to change the transaction isolation level for this
+     * <code>Connection</code> object to the one given.
+     * The constants defined in the interface <code>Connection</code>
+     * are the possible transaction isolation levels.
+     * <P>
+     * <B>Note:</B> If this method is called during a transaction, the result
+     * is implementation-defined.
+     *
+     * @param level one of the following <code>Connection</code> constants:
+     *        <code>Connection.TRANSACTION_READ_UNCOMMITTED</code>,
+     *        <code>Connection.TRANSACTION_READ_COMMITTED</code>,
+     *        <code>Connection.TRANSACTION_REPEATABLE_READ</code>, or
+     *        <code>Connection.TRANSACTION_SERIALIZABLE</code>.
+     *        (Note that <code>Connection.TRANSACTION_NONE</code> cannot be used
+     *        because it specifies that transactions are not supported.)
+     * @exception SQLException if a database access error occurs, this
+     * method is called on a closed connection
+     *            or the given parameter is not one of the <code>Connection</code>
+     *            constants
+     * @see DatabaseMetaData#supportsTransactionIsolationLevel
+     * @see #getTransactionIsolation
+     */
+	public void beginTransaction(int level) {
+		try {
+			Connection conn = trans.get();
+			if(conn == null) {
 				conn = dataSource.getConnection();
+				conn.setAutoCommit(false);
+				conn.setTransactionIsolation(level);
+				trans.set(conn);
+			}else {
+				if(conn.getTransactionIsolation() < level) {
+					conn.setTransactionIsolation(level);
+				}
+			}
+		} catch (SQLException e) {
+			Failed.throwError(e.getMessage());
+		}
+	}
+	public Savepoint setSavepoint() {
+		Savepoint sp = null;
+		Connection conn = trans.get();
+		try {
+			sp = conn.setSavepoint();
+		} catch (SQLException e) {
+			Failed.throwError(e.getMessage());
+		}
+		return sp;
+	}
+	
+	public void rollback(Savepoint sp) {
+		Connection conn = trans.get();
+		if(conn != null) {
+			try {
+				conn.rollback(sp);
+				conn.releaseSavepoint(sp);
 			} catch (SQLException e) {
 				Failed.throwError(e.getMessage());
 			}
+		}
+	}
+	public void rollback() {
+		Connection conn = trans.get();
+		if(conn != null) {
+			try {
+				conn.rollback();
+			} catch (SQLException e) {
+				Failed.throwError(e.getMessage());
+			}
+		}
+	}
+	public void commit() {
+		Connection conn = trans.get();
+		if(conn != null) {
+			try {
+				conn.commit();
+				trans.remove();
+			} catch (SQLException e) {
+				Failed.throwError(e.getMessage());
+			}finally {
+				try {
+					if(conn != null  && !conn.isClosed()) {
+						conn.close();
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	/**
+	 * @param sql
+	 * @param args
+	 * @return list[0]:columnNames
+	 * @return list[?>0]:row data
+	 */
+	public List<Object[]> call(String sql,Object[] args) {
+		List<Object[]> result = new LinkedList<>();
+		Connection conn = trans.get();
+		PreparedStatement stat = null;
+		ResultSet rs = null;
+		boolean usingTrans = false;
+		if(conn == null) {
+			if(dataSource != null) {
+				try {
+					conn = dataSource.getConnection();
+				} catch (SQLException e) {
+					Failed.throwError(e.getMessage());
+				}
+			}
+		}else {
+			usingTrans = true;
+		}
+		if(conn != null) {
 			try {
 				stat = conn.prepareCall(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CONCUR_UPDATABLE);
 				if(args != null) {
@@ -43,7 +154,21 @@ public class JdbcHelper {
 						stat.setObject(i+1, args[i]);
 					}
 				}
-				rs = stat.executeQuery();	
+				rs = stat.executeQuery();
+				ResultSetMetaData md = rs.getMetaData();
+				Object[] rowNames = new Object[md.getColumnCount()];
+				for (int cc = 1; cc <= md.getColumnCount(); cc++) {
+					rowNames[cc - 1] = md.getColumnName(cc);
+				}
+				result.add(rowNames);
+				while(rs.next()) {
+					Object[] row = new Object[md.getColumnCount()];
+					for (int cc = 1; cc <= md.getColumnCount(); cc++) {
+						row[cc - 1] = rs.getObject(cc);
+					}
+					result.add(row);
+				}
+				rs.close();
 			} catch (SQLException e) {
 				Failed.throwMsg(e.getMessage());
 			}finally {
@@ -54,53 +179,7 @@ public class JdbcHelper {
 						Failed.throwMsg(e.getMessage());
 					}
 				}
-				if(conn != null) {
-					try {
-						conn.close();
-					} catch (SQLException e) {
-						e.printStackTrace();
-						Failed.throwMsg(e.getMessage());
-					}
-				}
-			}
-		}
-		return rs;
-	}
-	
-	private int[] batchExec(String sql,List<Object[]> args) {
-		Connection conn = null;
-		PreparedStatement stat = null;
-		int[] result = null;
-		if(dataSource != null) {
-			try {
-				conn = dataSource.getConnection();
-				//conn.setAutoCommit(false);
-			} catch (SQLException e) {
-				Failed.throwError(e.getMessage());
-			}
-			try {
-				stat = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				for (Object[] arr:args) {
-					for (int i = 0; i < arr.length; i++) {
-						stat.setObject(i+1, arr[i]);
-					}
-					stat.addBatch();
-				}
-				stat.setMaxRows(args.size());
-				result = stat.executeBatch();
-				//conn.commit();
-			} catch (SQLException e) {
-				e.printStackTrace();
-				Failed.throwMsg(e.getMessage());
-			}finally {
-				if(stat != null) {
-					try {
-						stat.close();
-					} catch (SQLException e) {
-						Failed.throwMsg(e.getMessage());
-					}
-				}		
-				if(conn != null) {
+				if(conn != null && !usingTrans) {
 					try {
 						conn.close();
 					} catch (SQLException e) {
@@ -113,46 +192,100 @@ public class JdbcHelper {
 		return result;
 	}
 	
-	public void query(String sql,Object[] args,Consumer<ResultSet> consumer) {
-		Connection conn = null;
+	private int[] batchExec(String sql,List<Object[]> args) {
+		Connection conn = trans.get();
 		PreparedStatement stat = null;
-		ResultSet rs = null;
-		if(dataSource != null) {
-			try {
-				conn = dataSource.getConnection();
-			} catch (SQLException e) {
-				Failed.throwError(e.getMessage());
+		int[] result = null;
+		boolean usingTrans = false;
+		if(conn == null) {
+			if(dataSource != null) {
+				try {
+					conn = dataSource.getConnection();
+				} catch (SQLException e) {
+					Failed.throwError(e.getMessage());
+				}
 			}
-			try {
-				stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CONCUR_READ_ONLY);
-				if(args != null) {
-					for(int i = 0; i < args.length; i++ ){
-						stat.setObject(i+1, args[i]);
-					}
+		}else {
+			usingTrans = true;
+		}
+		try {
+			stat = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			for (Object[] arr : args) {
+				for (int i = 0; i < arr.length; i++) {
+					stat.setObject(i + 1, arr[i]);
 				}
-				rs = stat.executeQuery();
-				while(rs.next()) {
-					consumer.accept(rs);
+				stat.addBatch();
+			}
+			stat.setMaxRows(args.size());
+			result = stat.executeBatch();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			Failed.throwMsg(e.getMessage());
+		} finally {
+			if (stat != null) {
+				try {
+					stat.close();
+				} catch (SQLException e) {
+					Failed.throwMsg(e.getMessage());
 				}
-			} catch (SQLException e) {
-				Failed.throwMsg(e.getMessage());
-			}finally {
-				
-				if(stat != null) {
-					try {
-						stat.close();
-					} catch (SQLException e) {
-						Failed.throwMsg(e.getMessage());
-					}
+			}
+			if (conn != null && !usingTrans) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+					Failed.throwMsg(e.getMessage());
 				}
-				
-				if(conn != null) {
-					try {
-						conn.close();
-					} catch (SQLException e) {
-						e.printStackTrace();
-						Failed.throwMsg(e.getMessage());
-					}
+			}
+		}
+		return result;
+	}
+	
+	public void query(String sql,Object[] args,Consumer<ResultSet> consumer) {
+		Connection conn = trans.get();
+		PreparedStatement stat = null;
+		ResultSet rs = null;		
+		boolean usingTrans = false;
+		if(conn == null) {
+			if(dataSource != null) {
+				try {
+					conn = dataSource.getConnection();
+				} catch (SQLException e) {
+					Failed.throwError(e.getMessage());
+				}
+			}
+		}else {
+			usingTrans = true;
+		}
+		try {
+			stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CONCUR_READ_ONLY);
+			if (args != null) {
+				for (int i = 0; i < args.length; i++) {
+					stat.setObject(i + 1, args[i]);
+				}
+			}
+			rs = stat.executeQuery();
+			while (rs.next()) {
+				consumer.accept(rs);
+			}
+		} catch (SQLException e) {
+			Failed.throwMsg(e.getMessage());
+		} finally {
+
+			if (stat != null) {
+				try {
+					stat.close();
+				} catch (SQLException e) {
+					Failed.throwMsg(e.getMessage());
+				}
+			}
+
+			if (conn != null && !usingTrans) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+					Failed.throwMsg(e.getMessage());
 				}
 			}
 		}
@@ -205,44 +338,46 @@ public class JdbcHelper {
 	
 	public int update(String sql, Object[] args) {
 		int cnt = 0;
-		Connection conn = null;
+		Connection conn = trans.get();
 		PreparedStatement stat = null;
-		if(dataSource != null) {
-			try {
-				conn = dataSource.getConnection();
-				//conn.setAutoCommit(false);
-			} catch (SQLException e) {
-				e.printStackTrace();
-				Failed.throwError(e.getMessage());
+		boolean usingTrans = false;
+		if(conn == null) {
+			if(dataSource != null) {
+				try {
+					conn = dataSource.getConnection();
+				} catch (SQLException e) {
+					Failed.throwError(e.getMessage());
+				}
 			}
-			try {
-				stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CLOSE_CURSORS_AT_COMMIT);
-				LOGGER.debug(sql);
-				if(args != null) {
-					for(int i = 0; i < args.length; i++ ){
-						stat.setObject(i+1, args[i]);
-					}
+		}else {
+			usingTrans = true;
+		}
+		try {
+			stat = conn.prepareStatement(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			LOGGER.debug(sql);
+			if (args != null) {
+				for (int i = 0; i < args.length; i++) {
+					stat.setObject(i + 1, args[i]);
 				}
-				cnt = stat.executeUpdate();
-				//conn.commit();
-			} catch (SQLException e) {
-				e.printStackTrace();
-				Failed.throwMsg(e.getMessage());
-			}finally {
-				if(stat != null) {
-					try {
-						stat.close();
-					} catch (SQLException e) {
-						Failed.throwMsg(e.getMessage());
-					}
+			}
+			cnt = stat.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			Failed.throwMsg(e.getMessage());
+		} finally {
+			if (stat != null) {
+				try {
+					stat.close();
+				} catch (SQLException e) {
+					Failed.throwMsg(e.getMessage());
 				}
-				if(conn != null) {
-					try {
-						conn.close();
-					} catch (SQLException e) {
-						e.printStackTrace();
-						Failed.throwMsg(e.getMessage());
-					}
+			}
+			if (conn != null && !usingTrans) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+					Failed.throwMsg(e.getMessage());
 				}
 			}
 		}

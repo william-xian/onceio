@@ -3,6 +3,7 @@ package top.onceio.db.dao.impl;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,8 +16,10 @@ import org.apache.log4j.Logger;
 import top.onceio.OConfig;
 import top.onceio.db.annotation.ConstraintType;
 import top.onceio.db.dao.Cnd;
+import top.onceio.db.dao.DDLDao;
 import top.onceio.db.dao.IdGenerator;
 import top.onceio.db.dao.Page;
+import top.onceio.db.dao.TransDao;
 import top.onceio.db.dao.tpl.SelectTpl;
 import top.onceio.db.dao.tpl.UpdateTpl;
 import top.onceio.db.jdbc.JdbcHelper;
@@ -31,7 +34,7 @@ import top.onceio.util.IDGenerator;
 import top.onceio.util.OAssert;
 import top.onceio.util.OUtils;
 
-public class DaoHelper<ID> {
+public class DaoHelper<ID> implements DDLDao,TransDao{
 	private static final Logger LOGGER = Logger.getLogger(DaoHelper.class);
 	
 	private JdbcHelper jdbcHelper;
@@ -229,6 +232,33 @@ public class DaoHelper<ID> {
 			return row;
 		}
 		return row;
+	}
+	
+	/**
+	 * @param sql
+	 * @param args
+	 * @return list[0]:columnNames
+	 * @return list[?>0]:row data
+	 */
+	public List<Object[]> call(String sql,Object[] args) {
+		return jdbcHelper.call(sql, args);
+	}
+
+	public void beginTransaction(int level) {
+		jdbcHelper.beginTransaction(level);
+	}
+	public Savepoint setSavepoint() {
+		return jdbcHelper.setSavepoint();
+	}
+
+	public void rollback() {
+		jdbcHelper.rollback();
+	}
+	public void rollback(Savepoint sp) {
+		jdbcHelper.rollback(sp);
+	}
+	public void commit() {
+		jdbcHelper.commit();
 	}
 	
 	public <E extends OEntity<ID>> E get(Class<E> tbl,ID id) {
