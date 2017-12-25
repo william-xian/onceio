@@ -3,6 +3,9 @@
   <groupId>top.onceio</groupId>
   <artifactId>onceio</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <properties>
+  	<tomcat.version>8.5.24</tomcat.version>
+  </properties>
   <dependencies>
   	<dependency>
     	<groupId>javax.servlet</groupId>
@@ -28,6 +31,26 @@
   		<scope>compile</scope>
   	</dependency>
   	
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-core</artifactId>
+			<version>${tomcat.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-websocket</artifactId>
+			<version>${tomcat.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-el</artifactId>
+			<version>${tomcat.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-jasper</artifactId>
+			<version>${tomcat.version}</version>
+		</dependency>
 	<dependency>
 		<groupId>com.alibaba</groupId>
 		<artifactId>druid</artifactId>
