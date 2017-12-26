@@ -14,7 +14,7 @@ import org.apache.catalina.webresources.StandardRoot;
 
 public class OnceIO {
 	
-	private static String webappDirLocation = "src/main/";
+	private static String webappDirLocation = "src/main/webapp";
   
     public static void run(Class<?> cnf,String[] args) {
     	Tomcat tomcat = new Tomcat();
@@ -25,7 +25,7 @@ public class OnceIO {
         tomcat.setPort(Integer.valueOf(webPort));
 		try {
 			Context ctx = tomcat.addWebapp("/", new File(webappDirLocation).getAbsolutePath());
-			
+			ctx.addWelcomeFile("/index.html");
 	        File additionWebInfClasses = new File("target/classes");
 	        WebResourceRoot resources = new StandardRoot(ctx);
 	        resources.addPreResources(new DirResourceSet(resources, "/WEB-INF/classes",
