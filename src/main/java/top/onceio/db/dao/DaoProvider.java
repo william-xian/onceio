@@ -1,5 +1,7 @@
 package top.onceio.db.dao;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -10,12 +12,18 @@ import top.onceio.db.tbl.OEntity;
 import top.onceio.mvc.annocations.Using;
 
 public abstract class DaoProvider<T extends OEntity<ID>,ID> implements Dao<T,ID> {
-	
 	@Using
 	protected DaoHelper<ID> daoHelper;
-	Class<T> tbl;
 	
+	private Class<T> tbl;
+	
+	@SuppressWarnings("unchecked")
 	public DaoProvider() {
+		Type type = this.getClass().getGenericSuperclass();
+		if(type instanceof ParameterizedType) {
+			Type[] tps = ((ParameterizedType)type).getActualTypeArguments();
+			tbl = (Class<T>) tps[0];
+		}
 	}
 	
 	@Override
@@ -26,121 +34,101 @@ public abstract class DaoProvider<T extends OEntity<ID>,ID> implements Dao<T,ID>
 
 	@Override
 	public T insert(T entity) {
-		// TODO Auto-generated method stub
-		return null;
+		return daoHelper.insert(entity);
 	}
 
 	@Override
 	public int insert(List<T> entities) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.insert(entities);
 	}
 
 	@Override
 	public int update(T entity) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.update(entity);
 	}
 
 	@Override
 	public int updateIgnoreNull(T entity) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.updateIgnoreNull(entity);
 	}
 
 	@Override
-	public int updateByTpl(UpdateTpl<T> tmpl) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int updateByTpl(UpdateTpl<T> tpl) {
+		return daoHelper.updateByTpl(tbl,tpl);
 	}
 
 	@Override
-	public int updateByTplCnd(UpdateTpl<T> tmpl, Cnd<T> cnd) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int updateByTplCnd(UpdateTpl<T> tpl, Cnd<T> cnd) {
+		return daoHelper.updateByTplCnd(tbl,tpl,cnd);
 	}
 
 	@Override
 	public int remove(ID id) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.remove(tbl, id);
 	}
 
 	@Override
 	public int remove(List<ID> ids) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.remove(tbl, ids);
 	}
 
 	@Override
 	public int remove(Cnd<T> cnd) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.remove(tbl, cnd);
 	}
 
 	@Override
 	public int recovery(Cnd<T> cnd) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.recovery(tbl,cnd);
 	}
 
 	@Override
 	public int delete(ID id) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.delete(tbl, id);
 	}
 
 	@Override
 	public int delete(List<ID> ids) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.delete(tbl, ids);
 	}
 
 	@Override
 	public int delete(Cnd<T> cnd) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.delete(tbl, cnd);
 	}
 	@Override
 	public T fetch(SelectTpl<T> tpl, Cnd<T> cnd) {
-		// TODO Auto-generated method stub
-		return null;
+		return daoHelper.fetch(tbl,tpl, cnd);
 	}
 	
 	@Override
 	public List<T> findByIds(List<ID> ids) {
-		// TODO Auto-generated method stub
-		return null;
+		return daoHelper.findByIds(tbl, ids);
 	}
 
 	@Override
 	public Page<T> find(Cnd<T> cnd) {
-		// TODO Auto-generated method stub
-		return null;
+		return daoHelper.find(tbl, cnd);
 	}
 
 	@Override
 	public Page<T> findTpl(SelectTpl<T> tpl, Cnd<T> cnd) {
-		// TODO Auto-generated method stub
-		return null;
+		return daoHelper.findByTpl(tbl, tpl, cnd);
 	}
 
 	@Override
 	public void download(SelectTpl<T> tpl, Cnd<T> cnd, Consumer<T> consumer) {
-		// TODO Auto-generated method stub
-		
+		daoHelper.download(tbl, tpl, cnd, consumer);
 	}
 
 	@Override
 	public long count() {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.count(tbl);
 	}
 
 	@Override
 	public long count(Cnd<T> cnd) {
-		// TODO Auto-generated method stub
-		return 0;
+		return daoHelper.count(tbl,cnd);
 	}
 
 }

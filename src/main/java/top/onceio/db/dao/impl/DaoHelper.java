@@ -266,7 +266,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		cnd.setPage(1);
 		cnd.setPageSize(1);
 		cnd.eq().setId(id);
-		Page<E> page = find(tbl,null,cnd);
+		Page<E> page = findByTpl(tbl,null,cnd);
 		if(page.getData().size() == 1) {
 			return page.getData().get(0);
 		}
@@ -414,7 +414,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		return jdbcHelper.update(sql, vals.toArray());
 	}
 
-	public <E extends OEntity<?>> int remove(Class<E> tbl,Long id) {
+	public <E extends OEntity<?>> int remove(Class<E> tbl,ID id) {
 		if(id == null) return 0;
 		OAssert.warnning(id != null,"ID不能为null");
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
@@ -423,7 +423,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		return jdbcHelper.update(sql, new Object[]{id});
 	}
 
-	public <E> int remove(Class<E> tbl, List<Long> ids) {
+	public <E> int remove(Class<E> tbl, List<ID> ids) {
 		if(ids == null || ids.isEmpty()) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String stub = OUtils.genStub("?",",",ids.size());
@@ -442,13 +442,24 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		}
 		return jdbcHelper.update(sql, sqlArgs.toArray());
 	}
-	public <E> int delete(Class<E> tbl, Long id) {
+	public <E extends OEntity<?>> int recovery(Class<E> tbl, Cnd<E> cnd) {
+		if(cnd == null) return 0;
+		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
+		List<Object> sqlArgs = new ArrayList<>();
+		String whereCnd = cnd.whereSql(sqlArgs);
+		String sql = String.format("UPDATE %s SET rm=false WHERE rm=true AND %s", tm.getTable(),whereCnd);
+		if(whereCnd.equals("")) {
+			sql = String.format("UPDATE %s SET rm=false WHERE rm=true", tm.getTable());
+		}
+		return jdbcHelper.update(sql, sqlArgs.toArray());
+	}
+	public <E> int delete(Class<E> tbl, ID id) {
 		if(id == null) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String sql = String.format("DELETE FROM %s WHERE id=? AND rm=true", tm.getTable());
 		return jdbcHelper.update(sql, new Object[]{id});
 	}
-	public <E> int delete(Class<E> tbl, List<Long> ids) {
+	public <E> int delete(Class<E> tbl, List<ID> ids) {
 		if(ids == null || ids.isEmpty()) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String stub = OUtils.genStub("?", ",", ids.size());
@@ -486,9 +497,9 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 
 	public <E extends OEntity<?>> Page<E> find(Class<E> tbl,Cnd<E> cnd) {
-		return find(tbl,null,cnd);
+		return findByTpl(tbl,null,cnd);
 	}
-	public <E extends OEntity<?>> Page<E> find(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd) {
+	public <E extends OEntity<?>> Page<E> findByTpl(Class<E> tbl,SelectTpl<E> tpl,Cnd<E> cnd) {
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
 		Page<E> page = new Page<E>();
@@ -538,7 +549,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		}
 		cnd.setPage(1);
 		cnd.setPageSize(1);
-		Page<E> page = find(tbl,tpl,cnd);
+		Page<E> page = findByTpl(tbl,tpl,cnd);
 		if(page.getData().size() > 0) {
 			return page.getData().get(0);
 		}
@@ -566,7 +577,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		});
 	}
 	
-	public <E extends OEntity<?>> List<E> findByIds(Class<E> tbl, List<Long> ids) {
+	public <E extends OEntity<?>> List<E> findByIds(Class<E> tbl, List<ID> ids) {
 		if(ids == null || ids.isEmpty()) {
 			return new ArrayList<E>();
 		}
@@ -574,8 +585,9 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		cnd.setPage(1);
 		cnd.setPageSize(ids.size());
 		cnd.in(ids.toArray(new Object[0])).setId(null);
-		Page<E> page = find(tbl,null,cnd);
+		Page<E> page = findByTpl(tbl,null,cnd);
 		return page.getData();
 	}
+
 }
 

@@ -252,7 +252,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		
 		SelectTpl<UserChief> distinct = new SelectTpl<UserChief>(UserChief.class);
 		distinct.using().setGenre(SelectTpl.USING_INT);
-		Page<UserChief> page= daoHelper.find(UserChief.class, distinct, cnd);
+		Page<UserChief> page= daoHelper.findByTpl(UserChief.class, distinct, cnd);
 		Assert.assertEquals(page.getTotal(), new Long(4));
 		
 		SelectTpl<UserChief> max = new SelectTpl<UserChief>(UserChief.class);

@@ -87,7 +87,7 @@ public class DaoHelperViewTest extends DaoBaseTest{
 		cnd.setPageSize(25);
 		SelectTpl<GoodsOrderView> tplOrder = new SelectTpl<>(GoodsOrderView.class);
 		tplOrder.usingRowNum();
-		Page<GoodsOrderView> page = daoHelper.find(GoodsOrderView.class,tplOrder,cnd);
+		Page<GoodsOrderView> page = daoHelper.findByTpl(GoodsOrderView.class,tplOrder,cnd);
 		System.out.println(page);
 		Assert.assertEquals(new Long(25), page.getTotal());
 		Assert.assertEquals(25L, page.getData().size());
@@ -118,7 +118,7 @@ public class DaoHelperViewTest extends DaoBaseTest{
 		cnd.groupBy().use().setUserName(Tpl.USING_S);
 		cnd.having().max().setId(Tpl.USING_LONG);
 		cnd.having().gt(2L);
-		Page<GoodsOrderView> page = daoHelper.find(GoodsOrderView.class,tpl,cnd);
+		Page<GoodsOrderView> page = daoHelper.findByTpl(GoodsOrderView.class,tpl,cnd);
 		System.out.println(page);
 	}
 	

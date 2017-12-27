@@ -16,4 +16,13 @@ public class UserProvider extends DaoProvider<UserChief,Long> {
 		cnd.eq().setName(name);
 		return super.fetch(null,cnd);
 	}
+	
+	public static void main(String[] args) {
+		
+		UserProvider up = new UserProvider();
+		UserChief uc = up.fetchByName("hello");
+		
+		System.out.println(uc);
+	}
+	
 }
