@@ -1,4 +1,4 @@
-package test.entity;
+package cn.xian.app.entity;
 
 import top.onceio.db.annotation.Col;
 import top.onceio.db.annotation.TblView;
