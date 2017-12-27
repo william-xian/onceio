@@ -32,12 +32,12 @@ public class DaoBaseTest {
 	public static void initDao() {
 		try {
 		Properties prop = new Properties();
-		prop.load(new FileInputStream("src/main/resources/application.properties"));
-		String driver = prop.getProperty("spring.datasource.driver");
-		String url = prop.getProperty("spring.datasource.url");
-		String username =prop.getProperty("spring.datasource.username");
-		String password = prop.getProperty("spring.datasource.password");
-		String maxActive = prop.getProperty("spring.datasource.maxActive");
+		prop.load(new FileInputStream("src/main/resources/onceio.properties"));
+		String driver = prop.getProperty("onceio.datasource.driver");
+		String url = prop.getProperty("onceio.datasource.url");
+		String username =prop.getProperty("onceio.datasource.username");
+		String password = prop.getProperty("onceio.datasource.password");
+		String maxActive = prop.getProperty("onceio.datasource.maxActive");
 		DataSource ds = new DataSource();
 		ds.setDriverClassName(driver);
 		ds.setUrl(url);
@@ -45,7 +45,6 @@ public class DaoBaseTest {
 		ds.setPassword(password);
 		ds.setMaxActive(Integer.parseInt(maxActive));
 		jdbcHelper.setDataSource(ds);
-		System.out.println("loaded jdbcTemplate");
 		IdGenerator<Long> idGenerator = new IdGenerator<Long>() {
 			@Override
 			public Long next(Class<?> entityClass) {

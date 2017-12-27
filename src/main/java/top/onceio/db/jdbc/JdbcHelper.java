@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -191,7 +192,52 @@ public class JdbcHelper {
 		}
 		return result;
 	}
-	
+
+	public int[] batchExec(String... sqls) {
+		Connection conn = trans.get();
+		Statement stat = null;
+		int[] result = null;
+		boolean usingTrans = false;
+		if(conn == null) {
+			if(dataSource != null) {
+				try {
+					conn = dataSource.getConnection();
+				} catch (SQLException e) {
+					Failed.throwError(e.getMessage());
+				}
+			}
+		}else {
+			usingTrans = true;
+		}
+		try {
+			stat = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			for (String sql : sqls) {
+				stat.addBatch(sql);
+			}
+			stat.setMaxRows(sqls.length);
+			result = stat.executeBatch();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			Failed.throwMsg(e.getMessage());
+		} finally {
+			if (stat != null) {
+				try {
+					stat.close();
+				} catch (SQLException e) {
+					Failed.throwMsg(e.getMessage());
+				}
+			}
+			if (conn != null && !usingTrans) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+					Failed.throwMsg(e.getMessage());
+				}
+			}
+		}
+		return result;
+	}
 	private int[] batchExec(String sql,List<Object[]> args) {
 		Connection conn = trans.get();
 		PreparedStatement stat = null;
@@ -269,6 +315,7 @@ public class JdbcHelper {
 				consumer.accept(rs);
 			}
 		} catch (SQLException e) {
+			e.printStackTrace();
 			Failed.throwMsg(e.getMessage());
 		} finally {
 
@@ -293,7 +340,7 @@ public class JdbcHelper {
 	
  	public <T> T queryForObject(String sql, Class<T> clazz) {
 		return queryForObject(sql,null,clazz);
-	}	
+	}
 	public <T> T queryForObject(String sql, Object[] args, Class<T> clazz) {
 		final List<T> result  = new LinkedList<>();
 		
@@ -301,8 +348,10 @@ public class JdbcHelper {
 			@Override
 			public void accept(ResultSet rs) {
 				try {
-					result.add(rs.getObject(1, clazz));
+					//TODO 阿里连接池不支持
+					result.add(rs.getObject(1,clazz));
 				} catch (SQLException e) {
+					e.printStackTrace();
 					Failed.throwMsg(e.getMessage());
 				}
 			}
@@ -317,19 +366,6 @@ public class JdbcHelper {
 
 	public int[] batchUpdate(String sql) {
 		return batchUpdate(sql, null);
-	}
-
-	public int[] batchUpdate(String... sql) {
-		StringBuilder sb = new StringBuilder();
-		for(String s:sql) {
-			if(s != null && s.isEmpty()) {
-				sb.append(s);
-				if(!s.endsWith(";")) {
-					sb.append(';');
-				}
-			}
-		}
-		return batchUpdate(sb.toString());	
 	}
 	
 	public int[] batchUpdate(String sql, List<Object[]> batchArgs) {

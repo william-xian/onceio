@@ -65,7 +65,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		if(!exist(OTableMeta.class)) {
 			List<String> sqls = this.createOrUpdate(OTableMeta.class);
 			if(sqls != null && !sqls.isEmpty()) {
-				jdbcHelper.batchUpdate(sqls.toArray(new String[0]));	
+				jdbcHelper.batchExec(sqls.toArray(new String[0]));	
 			}
 		}
 		TableMeta tm = TableMeta.createBy(OTableMeta.class);
@@ -108,7 +108,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 				sqls.addAll(tblSqls.get(tbl));
 			}
 			if(!sqls.isEmpty()) {
-				jdbcHelper.batchUpdate(sqls.toArray(new String[0]));	
+				jdbcHelper.batchExec(sqls.toArray(new String[0]));	
 			}
 		}
 		
@@ -199,7 +199,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 
 	public int[] batchUpdate(final String... sql) {
-		return jdbcHelper.batchUpdate(sql);
+		return jdbcHelper.batchExec(sql);
 	}
 	
 	public int[] batchUpdate(final String sql,List<Object[]> batchArgs) {
