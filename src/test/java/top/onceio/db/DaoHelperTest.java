@@ -9,7 +9,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import test.entity.UserChief;
+import cn.xian.app.entity.UserChief;
 import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.Page;
 import top.onceio.db.dao.tpl.SelectTpl;

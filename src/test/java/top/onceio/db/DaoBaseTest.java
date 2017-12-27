@@ -8,15 +8,15 @@ import java.util.Properties;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
 
-import test.entity.Goods;
-import test.entity.GoodsDesc;
-import test.entity.GoodsOrder;
-import test.entity.GoodsOrderView;
-import test.entity.GoodsShipping;
-import test.entity.UserChief;
-import test.entity.UserFriend;
-import test.entity.UserProfile;
-import test.entity.Wallet;
+import cn.xian.app.entity.Goods;
+import cn.xian.app.entity.GoodsDesc;
+import cn.xian.app.entity.GoodsOrder;
+import cn.xian.app.entity.GoodsOrderView;
+import cn.xian.app.entity.GoodsShipping;
+import cn.xian.app.entity.UserChief;
+import cn.xian.app.entity.UserFriend;
+import cn.xian.app.entity.UserProfile;
+import cn.xian.app.entity.Wallet;
 import top.onceio.db.dao.IdGenerator;
 import top.onceio.db.dao.impl.DaoHelper;
 import top.onceio.db.jdbc.JdbcHelper;

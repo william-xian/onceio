@@ -6,7 +6,7 @@ import java.sql.Savepoint;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import test.entity.UserChief;
+import cn.xian.app.entity.UserChief;
 import top.onceio.util.IDGenerator;
 
 public class TransTest extends DaoBaseTest{

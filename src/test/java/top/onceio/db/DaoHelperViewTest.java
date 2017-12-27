@@ -10,11 +10,11 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import test.entity.Goods;
-import test.entity.GoodsDesc;
-import test.entity.GoodsOrder;
-import test.entity.GoodsOrderView;
-import test.entity.UserChief;
+import cn.xian.app.entity.Goods;
+import cn.xian.app.entity.GoodsDesc;
+import cn.xian.app.entity.GoodsOrder;
+import cn.xian.app.entity.GoodsOrderView;
+import cn.xian.app.entity.UserChief;
 import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.Page;
 import top.onceio.db.dao.tpl.SelectTpl;

@@ -21,6 +21,7 @@ public interface Dao<T,ID> {
 	int delete(ID id);
 	int delete(List<ID> ids);
 	int delete(Cnd<T> cnd);
+	T fetch(SelectTpl<T> tpl,Cnd<T> cnd);
 	List<T> findByIds(List<ID> ids);
 	Page<T> find(Cnd<T> cnd);
 	Page<T> findTpl(SelectTpl<T> tpl,Cnd<T> cnd);
