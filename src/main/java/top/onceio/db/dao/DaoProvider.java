@@ -11,9 +11,9 @@ import top.onceio.db.dao.tpl.UpdateTpl;
 import top.onceio.db.tbl.OEntity;
 import top.onceio.mvc.annocations.Using;
 
-public abstract class DaoProvider<T extends OEntity<ID>,ID> implements Dao<T,ID> {
+public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 	@Using
-	protected DaoHelper<ID> daoHelper;
+	protected DaoHelper daoHelper;
 	
 	private Class<T> tbl;
 	
@@ -27,7 +27,7 @@ public abstract class DaoProvider<T extends OEntity<ID>,ID> implements Dao<T,ID>
 	}
 	
 	@Override
-	public T get(ID id) {
+	public T get(Long id) {
 		daoHelper.get(tbl, id);
 		return daoHelper.get(tbl, id);
 	}
@@ -63,12 +63,12 @@ public abstract class DaoProvider<T extends OEntity<ID>,ID> implements Dao<T,ID>
 	}
 
 	@Override
-	public int remove(ID id) {
+	public int remove(Long id) {
 		return daoHelper.remove(tbl, id);
 	}
 
 	@Override
-	public int remove(List<ID> ids) {
+	public int remove(List<Long> ids) {
 		return daoHelper.remove(tbl, ids);
 	}
 
@@ -83,12 +83,12 @@ public abstract class DaoProvider<T extends OEntity<ID>,ID> implements Dao<T,ID>
 	}
 
 	@Override
-	public int delete(ID id) {
+	public int delete(Long id) {
 		return daoHelper.delete(tbl, id);
 	}
 
 	@Override
-	public int delete(List<ID> ids) {
+	public int delete(List<Long> ids) {
 		return daoHelper.delete(tbl, ids);
 	}
 
@@ -102,7 +102,7 @@ public abstract class DaoProvider<T extends OEntity<ID>,ID> implements Dao<T,ID>
 	}
 	
 	@Override
-	public List<T> findByIds(List<ID> ids) {
+	public List<T> findByIds(List<Long> ids) {
 		return daoHelper.findByIds(tbl, ids);
 	}
 

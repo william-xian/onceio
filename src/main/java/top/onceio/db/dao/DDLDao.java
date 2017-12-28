@@ -5,9 +5,9 @@ import java.util.List;
 import top.onceio.db.tbl.OEntity;
 
 public interface DDLDao {
-	public <E extends OEntity<?>> List<String> createOrUpdate(Class<E> tbl);
+	public <E extends OEntity> List<String> createOrUpdate(Class<E> tbl);
 
-	public <E extends OEntity<?>> boolean drop(Class<E> tbl);
+	public <E extends OEntity> boolean drop(Class<E> tbl);
 
 	public int[] batchUpdate(final String... sql);
 	

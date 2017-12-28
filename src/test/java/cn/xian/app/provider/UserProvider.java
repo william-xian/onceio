@@ -9,7 +9,7 @@ import top.onceio.mvc.annocations.Param;
 
 @AutoApi
 @Cacheable
-public class UserProvider extends DaoProvider<UserChief,Long> {
+public class UserProvider extends DaoProvider<UserChief> {
 	@Cacheable
 	public UserChief fetchByName(@Param("name") String name) {
 		Cnd<UserChief> cnd = new Cnd<>(UserChief.class);

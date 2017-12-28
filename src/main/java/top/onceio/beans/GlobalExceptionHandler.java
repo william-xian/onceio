@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 
+import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.Dao;
 import top.onceio.db.tbl.OI18n;
 import top.onceio.exception.Failed;
@@ -17,15 +18,17 @@ import top.onceio.util.OUtils;
 
 public class GlobalExceptionHandler {
 	private static final Logger LOGGER = Logger.getLogger(GlobalExceptionHandler.class);
-	Dao<OI18n,String> dao;
+	Dao<OI18n> dao;
  
 	public Map<String,Object> failedHandler(HttpServletRequest req, Failed failed) throws Exception {
     	String defaultFromat  = failed.getFormat();
     	Locale  locale = req.getLocale();
     	String lang = locale == null ? null:locale.getLanguage();
     	if(lang != null && !lang.equals(Locale.getDefault().getLanguage())){
-        	String id = "msg/"+lang+"_"+OUtils.encodeMD5(failed.getFormat());	
-        	OI18n i18n = dao.get(id);
+        	String key = "msg/"+lang+"_"+OUtils.encodeMD5(failed.getFormat());
+        	Cnd<OI18n> cnd = new Cnd<>(OI18n.class);
+        	cnd.eq().setKey(key);
+        	OI18n i18n = dao.fetch(null, cnd);
         	if(i18n != null) {
         		defaultFromat  = i18n.getName();
         	}

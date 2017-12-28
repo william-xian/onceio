@@ -88,7 +88,7 @@ public class TableMeta {
 		for(String name:nameToColumnMeta.keySet()) {
 			if(name.equalsIgnoreCase(colName)){
 				return nameToColumnMeta.get(name);	
-			}	
+			}
 		}
 		return null;
 	}
@@ -169,6 +169,18 @@ public class TableMeta {
 					fieldConstraint.add(cnsMeta);
 				}
 				nameToColumnMeta.put(cm.getName(), cm);
+			}
+			if(extend != null && !"".equals(extend)){
+				ConstraintMeta cnsMeta = new ConstraintMeta();
+				List<String> cols = new ArrayList<> ();
+				cols.add("id");
+				cnsMeta.setColumns(new ArrayList<String>(cols));
+				cnsMeta.setTable(this.getTable());
+				cnsMeta.setName("fk_"+cnsMeta.getTable()+"_id");
+				cnsMeta.setUsing("btree");
+				cnsMeta.setType(ConstraintType.FOREGIN_KEY);
+				cnsMeta.setRefTable(extend);
+				fieldConstraint.add(cnsMeta);
 			}
 		}
 	}
@@ -320,6 +332,9 @@ public class TableMeta {
 				cm.setUsing(c.using());
 			}
 			tm.setConstraints(constraints);
+			if(!tbl.extend().equals(void.class)) {
+				tm.setExtend(tbl.extend().getSimpleName());	
+			}
 		}
 		List<Class<?>> classes = new ArrayList<>();
 		for(Class<?> clazz = entity;!clazz.equals(Object.class);clazz=clazz.getSuperclass()) {

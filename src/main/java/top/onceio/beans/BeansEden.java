@@ -50,17 +50,17 @@ public class BeansEden {
 	
 	
 	@SuppressWarnings("unchecked")
-	public List<Class<? extends OEntity<?>>> scanTblTblView() {
-		List<Class<? extends OEntity<?>>> entities= new LinkedList<>();
+	public List<Class<? extends OEntity>> scanTblTblView() {
+		List<Class<? extends OEntity>> entities= new LinkedList<>();
 		scanner.scanPackages("cn.mx.app");
 		for(Class<?> clazz:scanner.getClasses(Tbl.class)) {
 			if(clazz.isAssignableFrom(OEntity.class)) {
-				entities.add((Class<? extends OEntity<?>>)clazz);
+				entities.add((Class<? extends OEntity>)clazz);
 			}
 		}
 		for(Class<?> clazz:scanner.getClasses(TblView.class)) {
 			if(clazz.isAssignableFrom(OEntity.class)) {
-				entities.add((Class<? extends OEntity<?>>)clazz);
+				entities.add((Class<? extends OEntity>)clazz);
 			}
 		}
 		return entities;

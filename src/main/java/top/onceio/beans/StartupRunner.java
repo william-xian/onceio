@@ -24,7 +24,7 @@ import top.onceio.util.OUtils;
 public class StartupRunner {
 	private static final Logger LOGGER = Logger.getLogger(StartupRunner.class);
     //@Autowired
-    private Dao<OI18n,String> dao;
+    private Dao<OI18n> dao;
     //@Value("${cn.dls.packages}")
     private String packages;
     
@@ -51,11 +51,13 @@ public class StartupRunner {
     			field.setAccessible(true);
     			try {
 					String name = field.get(null).toString();
-					String id ="msg/"+group.value()+"_"+OUtils.encodeMD5(name);
-					OI18n i18n = dao.get(id);
+					String key ="msg/"+group.value()+"_"+OUtils.encodeMD5(name);
+		        	Cnd<OI18n> cnd = new Cnd<>(OI18n.class);
+		        	cnd.eq().setKey(key);
+		        	OI18n i18n = dao.fetch(null, cnd);
 					if(i18n == null) {
 						i18n = new OI18n();
-						i18n.setId(id);
+						i18n.setKey(key);
 						i18n.setName(name);
 						i18ns.add(i18n);
 					}
@@ -79,12 +81,15 @@ public class StartupRunner {
     			try {
 					String fieldname = field.getName();
 					String val = field.get(null).toString();
-					String id = "const/" + group.value()+ "_"+ clazz.getSimpleName() + "_" + fieldname;
+					String key = "const/" + group.value()+ "_"+ clazz.getSimpleName() + "_" + fieldname;
 					String name = cons.value();
-					OI18n i18n = dao.get(id);
+		        	Cnd<OI18n> cnd = new Cnd<>(OI18n.class);
+		        	cnd.eq().setKey(key);
+		        	OI18n i18n = dao.fetch(null, cnd);
+					
 					if(i18n == null) {
 						i18n = new OI18n();
-						i18n.setId(id);
+						i18n.setKey(key);
 						i18n.setName(name);
 						i18n.setVal(val);
 						LOGGER.debug("add: " + i18n);

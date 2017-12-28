@@ -6,23 +6,23 @@ import java.util.function.Consumer;
 import top.onceio.db.dao.tpl.SelectTpl;
 import top.onceio.db.dao.tpl.UpdateTpl;
 
-public interface Dao<T,ID> {
-	T get(ID id);
+public interface Dao<T> {
+	T get(Long id);
 	T insert(T entity);
 	int insert(List<T> entities);
 	int update(T entity);
 	int updateIgnoreNull(T entity);
 	int updateByTpl(UpdateTpl<T> tpl);
 	int updateByTplCnd(UpdateTpl<T> tpl,Cnd<T> cnd);
-	int remove(ID id);
-	int remove(List<ID> ids);
+	int remove(Long id);
+	int remove(List<Long> ids);
 	int remove(Cnd<T> cnd);
 	int recovery(Cnd<T> cnd);
-	int delete(ID id);
-	int delete(List<ID> ids);
+	int delete(Long id);
+	int delete(List<Long> ids);
 	int delete(Cnd<T> cnd);
 	T fetch(SelectTpl<T> tpl,Cnd<T> cnd);
-	List<T> findByIds(List<ID> ids);
+	List<T> findByIds(List<Long> ids);
 	Page<T> find(Cnd<T> cnd);
 	Page<T> findTpl(SelectTpl<T> tpl,Cnd<T> cnd);
 	void download(SelectTpl<T> tpl,Cnd<T> cnd,Consumer<T> consumer);

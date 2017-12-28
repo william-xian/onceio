@@ -5,7 +5,7 @@ import top.onceio.db.annotation.Tbl;
 import top.onceio.db.tbl.OEntity;
 
 @Tbl
-public class GoodsOrder extends OEntity<Long>{
+public class GoodsOrder extends OEntity{
 	@Col(ref=UserChief.class)
 	private Long userId;
 	@Col(ref=Goods.class,nullable = false)

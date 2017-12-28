@@ -5,7 +5,7 @@ import top.onceio.db.annotation.Tbl;
 import top.onceio.db.tbl.OEntity;
 
 @Tbl
-public class ReqLog extends OEntity<Long>{
+public class ReqLog extends OEntity{
 	@Col(size = 255,nullable = true)
 	private String curUser;
 	@Col(size = 8,colDef="varchar(8) default ''",nullable = false)

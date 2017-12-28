@@ -4,7 +4,7 @@ import top.onceio.db.annotation.Col;
 import top.onceio.db.annotation.Tbl;
 
 @Tbl
-public final class ODDMeta extends OEntity<Long>{
+public final class ODDMeta extends OEntity{
 	@Col(size=32,nullable=true)
 	private String tag;
 	@Col(nullable=true,colDef="TEXT")
