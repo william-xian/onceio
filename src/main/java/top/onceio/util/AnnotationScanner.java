@@ -21,7 +21,7 @@ public class AnnotationScanner {
 		return filter;
 	}
 
-	private final Map<Class<?>,Set<Class<?>>> annotations = new HashMap<>();
+	private final Map<Class<?>,Set<Class<?>>> classifiedAnns = new HashMap<>();
     
     public void scanPackages(String ...packages){
     	
@@ -40,15 +40,19 @@ public class AnnotationScanner {
     }
     
     private void putClass(Class<?> annotation,Class<?> clazz) {
-		Set<Class<?>> clazzList = annotations.get(annotation);
+		Set<Class<?>> clazzList = classifiedAnns.get(annotation);
 		if(clazzList == null) {
 			clazzList = new HashSet<>();
-			annotations.put(annotation, clazzList);
+			classifiedAnns.put(annotation, clazzList);
 		}
 		clazzList.add(clazz);
     }
 	
-    public Set<Class<?>> getClasses(Class<?> annotation) {
-		return annotations.get(annotation);
+    public Set<Class<?>> getClasses(Class<?>... annotation) {
+    	Set<Class<?>> result = new HashSet<>();
+    	for(Class<?> ann:annotation) {
+    		result.addAll(classifiedAnns.get(ann));
+    	}
+		return result;
 	}
 }

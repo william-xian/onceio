@@ -206,7 +206,7 @@ public class DaoHelper implements DDLDao,TransDao{
 		return jdbcHelper.batchUpdate(sql, batchArgs);
 	}
 	
-	public static <E extends OEntity> E createBy(Class<E> tbl,TableMeta tm,ResultSet rs) throws SQLException {
+	private static <E extends OEntity> E createBy(Class<E> tbl,TableMeta tm,ResultSet rs) throws SQLException {
 		E row = null;
 		try {
 			row = tbl.newInstance();
