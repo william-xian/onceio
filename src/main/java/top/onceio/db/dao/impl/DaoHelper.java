@@ -50,7 +50,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 	}
 	
 	public boolean exist(Class<?> tbl) {
-		Long cnt = jdbcHelper.queryForObject(String.format("select count(*) from pg_class where relname = '%s'", tbl.getSimpleName().toLowerCase()), Long.class);
+		Long cnt = (Long)jdbcHelper.queryForObject(String.format("select count(*) from pg_class where relname = '%s'", tbl.getSimpleName().toLowerCase()));
 		if(cnt != null && cnt > 0) {
 			return true;
 		}else {
@@ -220,7 +220,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 				ColumnMeta cm = tm.getColumnMetaByName(colName);
 				if (cm != null) {
 					try {
-						Object val = rs.getObject(colName, cm.getJavaBaseType());
+						Object val = rs.getObject(colName);
 						cm.getField().set(row, val);
 					} catch (IllegalArgumentException | IllegalAccessException e) {
 						e.printStackTrace();
@@ -493,7 +493,7 @@ public class DaoHelper<ID> implements DDLDao,TransDao{
 		List<Object> sqlArgs = new ArrayList<>();
 		String sql = cnd.countSql(tm, tpl, sqlArgs);
 		LOGGER.debug(sql);
-		return jdbcHelper.queryForObject(sql,sqlArgs.toArray(new Object[0]), Long.class);
+		return (Long)jdbcHelper.queryForObject(sql,sqlArgs.toArray(new Object[0]));
 	}
 
 	public <E extends OEntity<?>> Page<E> find(Class<E> tbl,Cnd<E> cnd) {

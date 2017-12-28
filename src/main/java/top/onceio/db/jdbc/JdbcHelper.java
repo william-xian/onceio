@@ -238,6 +238,7 @@ public class JdbcHelper {
 		}
 		return result;
 	}
+	
 	private int[] batchExec(String sql,List<Object[]> args) {
 		Connection conn = trans.get();
 		PreparedStatement stat = null;
@@ -338,28 +339,13 @@ public class JdbcHelper {
 		}
 	}
 	
- 	public <T> T queryForObject(String sql, Class<T> clazz) {
-		return queryForObject(sql,null,clazz);
+ 	public Object queryForObject(String sql) {
+		return queryForObject(sql,null);
 	}
-	public <T> T queryForObject(String sql, Object[] args, Class<T> clazz) {
-		final List<T> result  = new LinkedList<>();
-		
-		query(sql,args,new Consumer<ResultSet>(){
-			@Override
-			public void accept(ResultSet rs) {
-				try {
-					//TODO 阿里连接池不支持
-					result.add(rs.getObject(1,clazz));
-				} catch (SQLException e) {
-					e.printStackTrace();
-					Failed.throwMsg(e.getMessage());
-				}
-			}
-		});
-		if(result.size() > 1) {
-			Failed.throwError("The count of result(%s) is more then 1.", result.size());
-		}else if(result.size() == 1) {
-			return result.get(0);
+	public Object queryForObject(String sql, Object[] args) {
+		List<Object[]> list = call(sql,args);
+		if(list.size() == 2) {
+			return list.get(1)[0];
 		}
 		return null;
 	}
