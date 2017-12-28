@@ -28,7 +28,6 @@ public class OIOServlet extends HttpServlet {
 	@Override
 	public void init() throws ServletException {
 	    super.init();
-	    System.out.println("load ... req&resp");
 	}
 	
 	@SuppressWarnings("deprecation")
