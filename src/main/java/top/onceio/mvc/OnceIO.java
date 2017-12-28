@@ -20,7 +20,7 @@ public class OnceIO {
     	Tomcat tomcat = new Tomcat();
         String webPort = System.getenv("PORT");  
         if(webPort == null || webPort.isEmpty()) {  
-            webPort = "8888";
+            webPort = "1230";
         }
         tomcat.setPort(Integer.valueOf(webPort));
 		try {
