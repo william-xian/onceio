@@ -268,10 +268,24 @@ public class BeansEden {
 			apiResover.push(apiMethod,api, bean, method);	
 		}
 	}
-	private static void resoveAutoApi(Class<?> clazz,AutoApi autoApi,Object bean,Method method){
-		String api = autoApi.value() + "/" + method.getName();
-		//TODO
-		apiResover.push(ApiMethod.GET,api, bean, method);
+
+	private static void resoveAutoApi(Class<?> clazz, AutoApi autoApi, Object bean, Method method) {
+		String api = autoApi.value().getSimpleName().toLowerCase();
+		if (method.getName().equals("get")) {
+			apiResover.push(ApiMethod.GET, api + "/{id}", bean, method);
+		} else if (method.getName().equals("insert")) {
+			apiResover.push(ApiMethod.POST, api, bean, method);
+		} else if (method.getName().equals("update")) {
+			apiResover.push(ApiMethod.PUT, api, bean, method);
+		} else if (method.getName().equals("updateIgnoreNull")) {
+			apiResover.push(ApiMethod.PATCH, api, bean, method);
+		} else if (method.getName().equals("delete")) {
+			apiResover.push(ApiMethod.DELETE, api, bean, method);
+		} else if (method.getName().equals("recovery")) {
+			apiResover.push(ApiMethod.RECOVERY, api, bean, method);
+		} else {
+			apiResover.push(ApiMethod.GET, api + "/" + method, bean, method);
+		}
 	}
 	
 	private static void resoveDef(Class<?> clazz,Def def,Object bean){

@@ -6,6 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import top.onceio.db.tbl.OEntity;
+
 /**
  * 类的所有公共方法都会成为RESTful API
  * @author william-xian
@@ -15,5 +17,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface AutoApi {
-	String value() default "";
+	Class<? extends OEntity> value();
 }

@@ -7,7 +7,7 @@ import top.onceio.db.dao.DaoProvider;
 import top.onceio.mvc.annocations.AutoApi;
 import top.onceio.mvc.annocations.Param;
 
-@AutoApi
+@AutoApi(UserChief.class)
 @Cacheable
 public class UserProvider extends DaoProvider<UserChief> {
 	@Cacheable
