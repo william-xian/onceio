@@ -1,4 +1,4 @@
-package top.onceio.annotation;
+package top.onceio.mvc.annocations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
