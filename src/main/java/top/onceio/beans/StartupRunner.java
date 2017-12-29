@@ -2,7 +2,6 @@ package top.onceio.beans;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -13,7 +12,6 @@ import top.onceio.annotation.I18nCfgBrief;
 import top.onceio.annotation.I18nMsg;
 import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.Dao;
-import top.onceio.db.dao.Page;
 import top.onceio.db.tbl.OI18n;
 import top.onceio.exception.Failed;
 import top.onceio.util.AnnotationScanner;
@@ -30,17 +28,7 @@ public class StartupRunner {
     
     private final static AnnotationScanner annotations = new AnnotationScanner(OI18n.class,I18nMsg.class,I18nCfg.class);
  
-    private void loadI18nToCache(){
-    	Cnd<OI18n> cnd = new Cnd<>(OI18n.class);
-    	cnd.setPage(1);
-    	cnd.setPageSize(Integer.MAX_VALUE);
-        Page<OI18n> i18ns = dao.find(cnd);
-        Iterator<OI18n> iter = i18ns.getData().iterator();
-        while(iter.hasNext()) {
-        	OI18n i = iter.next();
-        	dao.get(i.getId());
-        }
-    }
+
     private void annlysisI18nMsg(){
     	Set<Class<?>> classes = annotations.getClasses(I18nMsg.class);
     	if(classes == null) return;
@@ -122,6 +110,5 @@ public class StartupRunner {
         }
         annlysisI18nMsg();
         annlysisConst();
-        loadI18nToCache();
     }
 }

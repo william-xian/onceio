@@ -2,9 +2,11 @@ package top.onceio.beans;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,8 @@ import top.onceio.mvc.annocations.Api;
 import top.onceio.mvc.annocations.AutoApi;
 import top.onceio.mvc.annocations.Def;
 import top.onceio.mvc.annocations.Definer;
+import top.onceio.mvc.annocations.OnCreate;
+import top.onceio.mvc.annocations.OnDestroy;
 import top.onceio.mvc.annocations.Using;
 import top.onceio.util.AnnotationScanner;
 import top.onceio.util.IDGenerator;
@@ -132,7 +136,7 @@ public class BeansEden {
 					}
 				}
 			} catch (InstantiationException|IllegalAccessException e) {
-				LOGGER.warn(e.getMessage());
+				LOGGER.error(e.getMessage(),e);
 			}
 		}
 		
@@ -144,19 +148,59 @@ public class BeansEden {
 				Object bean = defClazz.newInstance();
 				store(defClazz,null, bean);
 			} catch (InstantiationException|IllegalAccessException e) {
-				LOGGER.warn(e.getMessage());
+				LOGGER.error(e.getMessage(),e);
 			}
 		}
 		
 	}
-	
-	//TODO
+
 	private static void linkBeans() {
-		
+		Iterator<Object> beans = nameToBean.values().iterator();
+		while(beans.hasNext()) {
+			Object bean = beans.next();
+			Class<?> clazz = bean.getClass();
+			for(Field field : clazz.getFields()) {
+				Using usingAnn = field.getAnnotation(Using.class);
+				if(usingAnn != null) {
+					Class<?> fieldType = field.getType();
+					Object fieldBean = load(fieldType,usingAnn.value());
+					if(fieldBean != null) {
+						try {
+							field.set(bean, fieldBean);
+						} catch (IllegalArgumentException | IllegalAccessException e) {
+							LOGGER.error(e.getMessage(),e);
+						}
+					} else {
+						LOGGER.error(String.format("找不到 %s:%s", fieldType.getName(),usingAnn.value()));
+					}
+					
+				}
+			}
+			
+		}
 	}
-	//TODO OnDestroy
+	
 	private static void executeOnCreate() {
-		
+		Iterator<Object> beans = nameToBean.values().iterator();
+		while(beans.hasNext()) {
+			Object bean = beans.next();
+			Class<?> clazz = bean.getClass();
+			for(Method method : clazz.getMethods()) {
+				OnCreate onCreateAnn = method.getAnnotation(OnCreate.class);
+				if(onCreateAnn != null) {
+					if(method.getParameterCount() == 0) {
+						try {
+							method.invoke(bean);
+						} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+							LOGGER.error(e.getMessage(),e);
+						}
+					} else {
+						LOGGER.error(String.format("初始化函数%s,不应该有参数", method.getName()));
+					}
+					
+				}
+			}
+		}
 	}
 	public static void resovle(String... packages) {
 		nameToBean.clear();
@@ -204,9 +248,27 @@ public class BeansEden {
 		}
 		return null;
 	}
-	//TODO OnDestroy
+	
 	public static <T> void erase(Class<T> clazz,String beanName) {
-		
+			Object bean = load(clazz,beanName);
+			if(bean != null) {
+				for(Method method : clazz.getMethods()) {
+					OnDestroy onDestroyAnn = method.getAnnotation(OnDestroy.class);
+					if(onDestroyAnn != null) {
+						if(method.getParameterCount() == 0) {
+							try {
+								method.invoke(bean);
+							} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+								LOGGER.error(e.getMessage(),e);
+							}
+						} else {
+							LOGGER.error(String.format("构造%s,不应该有参数", method.getName()));
+						}
+					}
+				}
+			}else {
+				LOGGER.error(String.format("找不到Bean对象：  %s:%s", clazz.getName(),beanName));
+			}
 	}
 	
 }
