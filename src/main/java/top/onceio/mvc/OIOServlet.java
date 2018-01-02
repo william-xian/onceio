@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.text.MessageFormat;
 import java.util.Date;
-import java.util.ResourceBundle;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
@@ -27,14 +25,6 @@ public class OIOServlet extends HttpServlet {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-    private static final String METHOD_DELETE = "DELETE";
-    private static final String METHOD_HEAD = "HEAD";
-    private static final String METHOD_GET = "GET";
-    private static final String METHOD_OPTIONS = "OPTIONS";
-    private static final String METHOD_POST = "POST";
-    private static final String METHOD_PUT = "PUT";
-    private static final String METHOD_TRACE = "TRACE";
 	
 	private final static Gson GSON = new Gson();
 	

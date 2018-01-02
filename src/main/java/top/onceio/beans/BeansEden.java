@@ -387,7 +387,7 @@ public class BeansEden {
 			}
 	}
 	
-	public static ApiPair search(String uri) {
-		return apiResover.search(uri);
+	public static ApiPair search(ApiMethod apiMethod,String uri) {
+		return apiResover.search(apiMethod,uri);
 	}
 }
