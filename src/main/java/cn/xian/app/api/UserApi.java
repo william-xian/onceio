@@ -12,7 +12,7 @@ public class UserApi {
 	private UserService userService;
 	
 	@Api("/{username}")
-	public String signin(@Param("username") String username) {
+	public String signin(@Param("username")String username) {
 		return "Hello, "+ username;
 	}
 }

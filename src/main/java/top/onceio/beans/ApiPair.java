@@ -20,7 +20,9 @@ import com.google.gson.JsonSyntaxException;
 import top.onceio.exception.Failed;
 import top.onceio.mvc.annocations.Attr;
 import top.onceio.mvc.annocations.Param;
+import top.onceio.util.OAssert;
 import top.onceio.util.OReflectUtil;
+import top.onceio.util.OUtils;
 
 public class ApiPair {
 	
@@ -32,11 +34,32 @@ public class ApiPair {
 	private Method method;
 	private Map<String,Integer> nameVarIndex;
 	private Map<String,Class<?>> nameType;
-	private String[] fromParam;
-	private String[] fromCookie;
-	private String[] fromAttr;
 	
 	
+	public ApiMethod getApiMethod() {
+		return apiMethod;
+	}
+	public void setApiMethod(ApiMethod apiMethod) {
+		this.apiMethod = apiMethod;
+	}
+	public String getApi() {
+		return api;
+	}
+	public void setApi(String api) {
+		this.api = api;
+	}
+	public Object getBean() {
+		return bean;
+	}
+	public void setBean(Object bean) {
+		this.bean = bean;
+	}
+	public Method getMethod() {
+		return method;
+	}
+	public void setMethod(Method method) {
+		this.method = method;
+	}
 	public ApiPair(ApiMethod apiMethod,String api, Object bean, Method method) {
 		super();
 		this.apiMethod = apiMethod;
@@ -46,10 +69,14 @@ public class ApiPair {
 		String[] names = api.split("/");
 		nameVarIndex = new HashMap<>(names.length);
 		for (int i = 0; i < names.length; i++) {
-			int end = names.length - 1;
-			if (names[i].charAt(0) == '{' && names[i].charAt(end) == '}') {
-				nameVarIndex.put(names[i].substring(0, end), i);
+			String name = names[i];
+			if(!name.isEmpty()) {
+				int end = name.length() - 1;
+				if (name.charAt(0) == '{' && name.charAt(end) == '}') {
+					nameVarIndex.put(name.substring(1, end), i);
+				}	
 			}
+			
 		}
 		nameType = new HashMap<>(method.getParameterCount());
 		List<String> fromP = new ArrayList<>(method.getParameterCount());
@@ -70,7 +97,8 @@ public class ApiPair {
 				name = cookieAnn.value();
 				fromC.add(name);
 			}
-
+			//TODO
+			System.out.println("-- name -- " + name+ " ->" + method.getName());
 			if (name != null) {
 				if (nameType.containsKey(name)) {
 					Failed.throwError("变量%s，命名冲突", paramAnn.value());
@@ -81,6 +109,8 @@ public class ApiPair {
 	}
 	public void resoveUriParams(Map<String, Object> result, String uri) {
 		String[] uris = uri.split("/");
+		System.out.println(OUtils.toJSON(nameVarIndex));
+		System.out.println(OUtils.toJSON(nameType));
 		for (String name : nameVarIndex.keySet()) {
 			Integer i = nameVarIndex.get(name);
 			String v = uris[i];
@@ -114,7 +144,6 @@ public class ApiPair {
 			if(OReflectUtil.isBaseType(type)) {
 				result.put(name, OReflectUtil.strToBaseType(type, map.get(name)[0]));
 			}
-			
 			Object v = GSON.fromJson(json.toString(), type);
 			result.put(name, v);
 		}
@@ -150,11 +179,5 @@ public class ApiPair {
 		}
 		result.add(ps[ps.length-1], ja);
 	}
-	
-	public static void main(String[] args) throws NoSuchMethodException, SecurityException {
-		System.out.println("--");
-		Object bean = new Object();
-		new ApiPair(ApiMethod.DELETE,"api",bean ,ApiPair.class.getMethod("a",String.class));
-	
-	}
+
 }

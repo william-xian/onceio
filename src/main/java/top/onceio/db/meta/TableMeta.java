@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import top.onceio.OnceIO;
 import top.onceio.db.annotation.Col;
 import top.onceio.db.annotation.Constraint;
 import top.onceio.db.annotation.ConstraintType;
@@ -110,7 +111,7 @@ public class TableMeta {
 	}
 	public void freshNameToField() {
 		try {
-			Class<?> tblEntity = this.getClass().getClassLoader().loadClass(entityName);
+			Class<?> tblEntity = OnceIO.getClassLoader().loadClass(entityName);
 			entity = tblEntity;
 			List<Class<?>> classes = new ArrayList<>();
 			for(Class<?> clazz = tblEntity;!clazz.equals(Object.class);clazz=clazz.getSuperclass()) {

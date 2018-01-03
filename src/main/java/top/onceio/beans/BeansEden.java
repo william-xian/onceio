@@ -1,7 +1,7 @@
 package top.onceio.beans;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 
 import com.alibaba.druid.pool.DruidDataSource;
 
+import top.onceio.OnceIO;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
 import top.onceio.db.dao.IdGenerator;
@@ -35,6 +36,8 @@ import top.onceio.mvc.annocations.OnDestroy;
 import top.onceio.mvc.annocations.Using;
 import top.onceio.util.AnnotationScanner;
 import top.onceio.util.IDGenerator;
+import top.onceio.util.OAssert;
+import top.onceio.util.OReflectUtil;
 
 public class BeansEden {
 
@@ -48,8 +51,7 @@ public class BeansEden {
 	
 	static {
 		try {
-			FileInputStream in;
-			in = new FileInputStream("onceio.properties");
+			InputStream in = OnceIO.getClassLoader().getResourceAsStream("onceio.properties");
 			prop.load(in);
 			in.close();
 		} catch (IOException e) {
@@ -68,7 +70,7 @@ public class BeansEden {
 		String url = prop.getProperty("onceio.datasource.url");
 		String username =prop.getProperty("onceio.datasource.username");
 		String password = prop.getProperty("onceio.datasource.password");
-		String maxActive = prop.getProperty("onceio.datasource.maxActive");
+		String maxActive = prop.getProperty("onceio.datasource.maxActive","3");
 		DruidDataSource ds = new DruidDataSource();
 		ds.setDriverClassName(driver);
 		ds.setUrl(url);
@@ -109,7 +111,7 @@ public class BeansEden {
 		JdbcHelper jdbcHelper = new JdbcHelper();
 		jdbcHelper.setDataSource(ds);
 		daoHelper.init(jdbcHelper, idGenerator, entities);
-		return null;
+		return daoHelper;
 	}
 	
 	private static void loadConfig(Class<?> clazz,Object bean,Field field) {
@@ -119,20 +121,9 @@ public class BeansEden {
 			String  val = prop.getProperty(cnfAnn.value());
 			if(val != null) {
 				try {
-					if (fieldType.equals(String.class)) {
-						field.set(bean, val);
-					} else if (fieldType.equals(Integer.class)) {
-						field.set(bean, Integer.valueOf(val));
-					} else if (fieldType.equals(Long.class)) {
-						field.set(bean, Long.valueOf(val));
-					} else if (fieldType.equals(Boolean.class)) {
-						field.set(bean, Boolean.valueOf(val));
-					}else if (fieldType.equals(Short.class)) {
-						field.set(bean, Short.valueOf(val));
-					}else if (fieldType.equals(Float.class)) {
-						field.set(bean, Float.valueOf(val));
-					}else if (fieldType.equals(Double.class)) {
-						field.set(bean, Double.valueOf(val));
+
+					if(OReflectUtil.isBaseType(fieldType)) {
+						field.set(bean, OReflectUtil.strToBaseType(fieldType, val));
 					}else {
 						LOGGER.error(String.format("属性不支持该类型：%s",fieldType.getName()));
 					}
@@ -190,6 +181,9 @@ public class BeansEden {
 	private static void loadApiAutoApi() {
 		Set<Class<?>> definers = scanner.getClasses(Api.class,AutoApi.class);
 		for(Class<?> defClazz:definers) {
+			if(LOGGER.isDebugEnabled()) {
+				LOGGER.debug("load Apis: "+defClazz.getName());
+			}
 			try {
 				Object bean = defClazz.newInstance();
 				store(defClazz,null, bean);
@@ -202,6 +196,7 @@ public class BeansEden {
 
 	private static void linkBeans() {
 		Iterator<Object> beans = nameToBean.values().iterator();
+
 		while(beans.hasNext()) {
 			Object bean = beans.next();
 			Class<?> clazz = bean.getClass();
@@ -283,8 +278,8 @@ public class BeansEden {
 			apiResover.push(ApiMethod.DELETE, api, bean, method);
 		} else if (method.getName().equals("recovery")) {
 			apiResover.push(ApiMethod.RECOVERY, api, bean, method);
-		} else {
-			apiResover.push(ApiMethod.GET, api + "/" + method, bean, method);
+		} else if(method.getDeclaringClass().equals(clazz)){
+			apiResover.push(ApiMethod.GET, api + "/" + method.getName(), bean, method);
 		}
 	}
 	
@@ -298,23 +293,29 @@ public class BeansEden {
 			Class<?> clazz = bean.getClass();
 			Api fatherApi = clazz.getAnnotation(Api.class);
 			AutoApi autoApi = clazz.getAnnotation(AutoApi.class);
-			for(Method method : clazz.getMethods()) {
+			for(Method method : clazz.getDeclaredMethods()) {
 				executeOnCreate(bean,method);
 				checkOnDestroy(bean,method);
 				Api methodApi = method.getAnnotation(Api.class);
 				if(fatherApi != null && methodApi != null) {
 					resoveApi(clazz,fatherApi,methodApi,bean,method);
 				}
-				if(autoApi != null) {
-					resoveAutoApi(clazz,autoApi,bean,method);
+			}
+
+			if (autoApi != null) {
+				for (Method method : clazz.getMethods()) {
+					executeOnCreate(bean, method);
+					checkOnDestroy(bean, method);
+					resoveAutoApi(clazz, autoApi, bean, method);
 				}
 			}
-			
 			Def def = clazz.getAnnotation(Def.class);
 			if(def != null) {
 				resoveDef(clazz,def,bean);
 			}
 		}
+
+		apiResover.build();
 	}
 
 	public static void resovle(String... packages) {
@@ -349,6 +350,10 @@ public class BeansEden {
 	}
 	
 	protected static <T> void store(Class<T> clazz,String beanName,Object bean) {
+		if(beanName  == null) {
+			beanName = "";
+		}
+		OAssert.err(bean != null,"%s:%s can not be null!", clazz.getName(),beanName);
 		nameToBean.put(clazz.getName()+":" + beanName,bean);
 	}
 	
@@ -358,6 +363,9 @@ public class BeansEden {
 
 	@SuppressWarnings("unchecked")
 	public static <T> T load(Class<T> clazz, String beanName) {
+		if(beanName  == null) {
+			beanName = "";
+		}
 		Object v = nameToBean.get(clazz.getName()+":" + beanName);
 		if(v != null) {
 			return (T)v;
@@ -365,26 +373,29 @@ public class BeansEden {
 		return null;
 	}
 	
-	public static <T> void erase(Class<T> clazz,String beanName) {
-			Object bean = load(clazz,beanName);
-			if(bean != null) {
-				for(Method method : clazz.getMethods()) {
-					OnDestroy onDestroyAnn = method.getAnnotation(OnDestroy.class);
-					if(onDestroyAnn != null) {
-						if(method.getParameterCount() == 0) {
-							try {
-								method.invoke(bean);
-							} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-								LOGGER.error(e.getMessage(),e);
-							}
-						} else {
-							LOGGER.error(String.format("构造%s,不应该有参数", method.getName()));
+	public static <T> void erase(Class<T> clazz, String beanName) {
+		if (beanName == null) {
+			beanName = "";
+		}
+		Object bean = load(clazz, beanName);
+		if (bean != null) {
+			for (Method method : clazz.getMethods()) {
+				OnDestroy onDestroyAnn = method.getAnnotation(OnDestroy.class);
+				if (onDestroyAnn != null) {
+					if (method.getParameterCount() == 0) {
+						try {
+							method.invoke(bean);
+						} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+							LOGGER.error(e.getMessage(), e);
 						}
+					} else {
+						LOGGER.error(String.format("构造%s,不应该有参数", method.getName()));
 					}
 				}
-			}else {
-				LOGGER.error(String.format("找不到Bean对象：  %s:%s", clazz.getName(),beanName));
 			}
+		} else {
+			LOGGER.error(String.format("找不到Bean对象：  %s:%s", clazz.getName(), beanName));
+		}
 	}
 	
 	public static ApiPair search(ApiMethod apiMethod,String uri) {

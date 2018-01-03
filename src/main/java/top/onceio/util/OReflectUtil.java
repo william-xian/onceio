@@ -70,34 +70,27 @@ public class OReflectUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <T> T strToBaseType(Class<T> type,String val) {
-		if (type.equals(String.class)) {
+		if(val == null){
+			return null;
+		} else if(type.equals(String.class)) {
 			return (T)val;
-		}
-		if (type.equals(Integer.class)) {
+		} else if (type.equals(Integer.class)) {
 			return (T)Integer.valueOf(val);
-		}
-		if (type.equals(Long.class)) {
+		} else if (type.equals(Long.class)) {
 			return (T)Long.valueOf(val);
-		}
-		if (type.equals(Boolean.class)) {
+		} else if (type.equals(Boolean.class)) {
 			return (T)Boolean.valueOf(val);
-		}
-		if (type.equals(Byte.class)) {
+		} else if (type.equals(Byte.class)) {
 			return (T)Byte.valueOf(val);
-		}
-		if (type.equals(Short.class)) {
+		} else if (type.equals(Short.class)) {
 			return (T)Short.valueOf(val);
-		}
-		if (type.equals(Double.class)) {
+		} else if (type.equals(Double.class)) {
 			return (T)Double.valueOf(val);
-		}
-		if (type.equals(Float.class)) {
+		} else if (type.equals(Float.class)) {
 			return (T)Float.valueOf(val);
-		}
-		if (type.equals(BigDecimal.class)) {
+		} else if (type.equals(BigDecimal.class)) {
 			return (T)BigDecimal.valueOf(Double.valueOf(val));
-		}
-		if (type.equals(Date.class)) {
+		} else if (type.equals(Date.class)) {
 			return (T)Date.valueOf(val);
 		}
 		return null;

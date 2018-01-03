@@ -12,7 +12,7 @@ import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
 
 
-public class OnceIO {
+public class Webapp {
 	
 	private static String webappDirLocation = "src/main/webapp";
   

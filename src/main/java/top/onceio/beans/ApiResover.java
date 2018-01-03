@@ -1,47 +1,62 @@
 package top.onceio.beans;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.TreeMap;
+
+import top.onceio.util.OUtils;
 
 public class ApiResover {
 
-	private TreeMap<String,Map<String,ApiPair>> fixedUri = new TreeMap<>();
-	
-	public void push(ApiMethod apiMethod,String api,Object bean,Method method) {
-		int sp = api.indexOf('{');
-		String head = api;
-		String tail = "";
-		if(sp > 0) {
-			head = api.substring(0, sp-1);
-			tail = api.substring(sp-1);
-			Map<String,ApiPair> map = fixedUri.get(head);
-			if(map == null) {
-				map = new HashMap<>();
-				fixedUri.put(head, map);	
+	private TreeMap<String, ApiPair> fixedUri = new TreeMap<>();
+
+	public ApiResover push(ApiMethod apiMethod, String api, Object bean, Method method) {
+		StringBuilder sb = new StringBuilder();
+		String[] ts = api.split("/");
+		for (String s : ts) {
+			if (s.startsWith("{") && s.endsWith("}")) {
+				sb.append("/[^/]*");
+			} else if (!s.isEmpty()) {
+				sb.append("/" + s);
 			}
-			map.put(tail+":"+apiMethod.name(), new ApiPair(apiMethod,api,bean,method));
 		}
-		Map<String,ApiPair> map = fixedUri.get(head);
-		if(map == null) {
-			map = new HashMap<>();
-			fixedUri.put(head, map);	
-		}
-		map.put(tail+":"+apiMethod.name(), new ApiPair(apiMethod,api,bean,method));
+		String pattern = sb.toString();
+		fixedUri.put(apiMethod.name() + ":" + pattern, new ApiPair(apiMethod, api, bean, method));
+		return this;
+	}
+	private String[] apis = null;
+	public ApiResover build() {
+		apis = fixedUri.keySet().toArray(new String[0]);
+		Arrays.sort(apis, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return String.CASE_INSENSITIVE_ORDER.compare(o2, o1);
+			}
+
+		});
+		return this;
 	}
 	
-	public ApiPair search(ApiMethod apiMethod,String uri) {
-		for (int sp = uri.length(); sp >= 0; sp = uri.lastIndexOf('/', sp - 1)) {
-			String head = uri.substring(0, sp);
-			Map<String,ApiPair> map = fixedUri.get(head);
-			if(map != null && !map.isEmpty()) {
-				//TODO
-				break;
+	/**
+	 * TODO O3
+	 * 	  api 
+	 * 1. /a/ 
+	 * 2. /a 
+	 * 3. /a/b 
+	 * 4. /a/{v1} 
+	 * 5. /a/{v1}/b 
+	 * 6. /a/{v1}/{v2}
+	 */
+	public ApiPair search(ApiMethod apiMethod, String uri) {
+		String target = apiMethod.name() + ":" + uri;
+		System.out.println(OUtils.toJSON(apis) + " vs " + target);
+		for(String api:apis) {
+			if (target.matches(api)) {
+				return fixedUri.get(api);
 			}
 		}
-		
 		return null;
 	}
-	
+
 }
