@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +23,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import top.onceio.OnceIO;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
+import top.onceio.db.dao.DaoProvider;
 import top.onceio.db.dao.IdGenerator;
 import top.onceio.db.dao.impl.DaoHelper;
 import top.onceio.db.jdbc.JdbcHelper;
@@ -251,11 +253,12 @@ public class BeansEden {
 			
 		}
 	}
+	
 	private static void resoveApi(Class<?> clazz,Api fatherApi,Api methodApi,Object bean,Method method){
 		String api = fatherApi.value() + methodApi.value();
-		ApiMethod[] apiMethods = methodApi.apiMethod();
+		ApiMethod[] apiMethods = methodApi.method();
 		if(apiMethods.length == 0) {
-			apiMethods = fatherApi.apiMethod();
+			apiMethods = fatherApi.method();
 		}
 		if(apiMethods.length == 0) {
 			LOGGER.error("Api的不能为空");
@@ -265,28 +268,20 @@ public class BeansEden {
 		}
 	}
 
-	private static void resoveAutoApi(Class<?> clazz, AutoApi autoApi, Object bean, Method method) {
+	private static void resoveAutoApi(Class<?> clazz, AutoApi autoApi,Api methodApi, Object bean, Method method,String methodName) {
 		String api = autoApi.value().getSimpleName().toLowerCase();
-		if (method.getName().equals("get")) {
-			apiResover.push(ApiMethod.GET, api + "/{id}", bean, method);
-		} else if (method.getName().equals("insert")) {
-			apiResover.push(ApiMethod.POST, api, bean, method);
-		} else if (method.getName().equals("update")) {
-			apiResover.push(ApiMethod.PUT, api, bean, method);
-		} else if (method.getName().equals("updateIgnoreNull")) {
-			apiResover.push(ApiMethod.PATCH, api, bean, method);
-		} else if (method.getName().equals("delete")) {
-			apiResover.push(ApiMethod.DELETE, api, bean, method);
-		} else if (method.getName().equals("recovery")) {
-			apiResover.push(ApiMethod.RECOVERY, api, bean, method);
-		} else if(method.getDeclaringClass().equals(clazz)){
-			apiResover.push(ApiMethod.GET, api + "/" + method.getName(), bean, method);
+		if(methodName != null) {
+			api = api+"/" + methodName;
+		}
+		for(ApiMethod apiMethod:methodApi.method()) {
+			apiResover.push(apiMethod, api, bean, method);
 		}
 	}
 	
 	private static void resoveDef(Class<?> clazz,Def def,Object bean){
 		nameToDef.put(clazz.getName()+":"+def.value(), bean);
 	}
+	
 	private static void resoveBeanMethod() {
 		Iterator<Object> beans = nameToBean.values().iterator();
 		while(beans.hasNext()) {
@@ -294,6 +289,7 @@ public class BeansEden {
 			Class<?> clazz = bean.getClass();
 			Api fatherApi = clazz.getAnnotation(Api.class);
 			AutoApi autoApi = clazz.getAnnotation(AutoApi.class);
+			Set<String> ignoreMethods = new HashSet<>();
 			for(Method method : clazz.getDeclaredMethods()) {
 				executeOnCreate(bean,method);
 				checkOnDestroy(bean,method);
@@ -301,13 +297,26 @@ public class BeansEden {
 				if(fatherApi != null && methodApi != null) {
 					resoveApi(clazz,fatherApi,methodApi,bean,method);
 				}
+				if(autoApi != null && methodApi != null) {
+					
+					ignoreMethods.add(method.getName()+method.getParameterTypes().hashCode());
+					
+					if(!methodApi.value().equals("")) {
+						resoveAutoApi(clazz,autoApi,methodApi,bean,method,methodApi.value());
+					}else {
+						resoveAutoApi(clazz,autoApi,methodApi,bean,method,method.getName());
+					}
+				}
 			}
-
 			if (autoApi != null) {
-				for (Method method : clazz.getMethods()) {
-					executeOnCreate(bean, method);
-					checkOnDestroy(bean, method);
-					resoveAutoApi(clazz, autoApi, bean, method);
+				if(clazz.isAssignableFrom(DaoProvider.class)) {
+					for(Method method : DaoProvider.class.getDeclaredMethods()) {
+						Api methodApi = method.getAnnotation(Api.class);
+						if(methodApi != null && !ignoreMethods.contains(method.getName()+method.getParameterTypes().hashCode())) {
+							resoveAutoApi(clazz,autoApi,methodApi,bean,method,null);	
+						}
+						
+					}
 				}
 			}
 			Def def = clazz.getAnnotation(Def.class);
