@@ -50,7 +50,7 @@ public class DaoHelperTest extends DaoBaseTest{
 			ucs.add(uc);
 			ids.add(uc.getId());
 		}
-		int insertcnt = daoHelper.insert(ucs);
+		int insertcnt = daoHelper.batchInsert(ucs);
 		Assert.assertEquals(10, insertcnt);
 		Assert.assertEquals(10, daoHelper.count(UserChief.class));
 		UserChief uc = new UserChief();
@@ -64,24 +64,24 @@ public class DaoHelperTest extends DaoBaseTest{
 		UserChief db = daoHelper.get(UserChief.class, uc.getId());
 		
 		Assert.assertEquals(db.toString(), uc.toString());
-		int deleted1 = daoHelper.delete(UserChief.class, uc.getId());
+		int deleted1 = daoHelper.deleteById(UserChief.class, uc.getId());
 		Assert.assertEquals(0, deleted1);
 		Assert.assertEquals(11, daoHelper.count(UserChief.class));
 		/** 
 		 * 
 		 */
-		int removed1 = daoHelper.remove(UserChief.class, uc.getId());
+		int removed1 = daoHelper.removeById(UserChief.class, uc.getId());
 		Assert.assertEquals(1, removed1);
-		int deleteRemoved1 = daoHelper.delete(UserChief.class, uc.getId());
+		int deleteRemoved1 = daoHelper.deleteById(UserChief.class, uc.getId());
 		Assert.assertEquals(1, deleteRemoved1);
 		Assert.assertEquals(10, daoHelper.count(UserChief.class));
 
-		int deleted10 = daoHelper.delete(UserChief.class, ids);
+		int deleted10 = daoHelper.deleteByIds(UserChief.class, ids);
 		Assert.assertEquals(0, deleted10);
 
-		int deleteRemoved10 = daoHelper.remove(UserChief.class, ids);
+		int deleteRemoved10 = daoHelper.removeByIds(UserChief.class, ids);
 		Assert.assertEquals(10, deleteRemoved10);
-		int deletedRemoved10 = daoHelper.delete(UserChief.class, ids);
+		int deletedRemoved10 = daoHelper.deleteByIds(UserChief.class, ids);
 		Assert.assertEquals(10, deletedRemoved10);
 		Assert.assertEquals(0, daoHelper.count(UserChief.class));
 	}
@@ -100,7 +100,7 @@ public class DaoHelperTest extends DaoBaseTest{
 			ucs.add(uc);
 			ids.add(uc.getId());
 		}
-		daoHelper.insert(ucs);
+		daoHelper.batchInsert(ucs);
 		UserChief uc1 = ucs.get(0);
 		UserChief uc2 = ucs.get(1);
 		UserChief uc3 = ucs.get(2);
@@ -121,8 +121,8 @@ public class DaoHelperTest extends DaoBaseTest{
 		UserChief db3 = daoHelper.get(UserChief.class, uc3.getId());
 		uc3.setRm(false);
 		Assert.assertEquals(uc3.toString(), db3.toString());
-		daoHelper.remove(UserChief.class, ids);
-		daoHelper.delete(UserChief.class, ids);
+		daoHelper.removeByIds(UserChief.class, ids);
+		daoHelper.deleteByIds(UserChief.class, ids);
 	}
 	@Test
 	public void updateByTpl() {
@@ -138,7 +138,7 @@ public class DaoHelperTest extends DaoBaseTest{
 			ucs.add(uc);
 			ids.add(uc.getId());
 		}
-		daoHelper.insert(ucs);
+		daoHelper.batchInsert(ucs);
 		UserChief uc1 = ucs.get(0);
 		UserChief uc2 = ucs.get(1);
 		UpdateTpl<UserChief> tpl = new UpdateTpl<>(UserChief.class);
@@ -150,8 +150,8 @@ public class DaoHelperTest extends DaoBaseTest{
 		UserChief db2 = daoHelper.get(UserChief.class, uc2.getId());
 		uc2.setRm(false);
 		Assert.assertEquals(uc2.toString(),db2.toString());
-		daoHelper.remove(UserChief.class, ids);
-		daoHelper.delete(UserChief.class, ids);
+		daoHelper.removeByIds(UserChief.class, ids);
+		daoHelper.deleteByIds(UserChief.class, ids);
 	}
 	
 	@Test
@@ -168,7 +168,7 @@ public class DaoHelperTest extends DaoBaseTest{
 			ucs.add(uc);
 			ids.add(uc.getId());
 		}
-		daoHelper.insert(ucs);
+		daoHelper.batchInsert(ucs);
 		System.out.println(OUtils.toJSON(ucs));
 		Cnd<UserChief> cnd1 = new Cnd<>(UserChief.class);
 		cnd1.eq().setGenre(2);
@@ -190,7 +190,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		rm.in(ids.toArray()).setId(Tpl.USING_LONG);
 		int cnt = daoHelper.remove(UserChief.class, rm);
 		System.out.println("removed - " + cnt);
-		cnt = daoHelper.delete(UserChief.class, ids);
+		cnt = daoHelper.deleteByIds(UserChief.class, ids);
 		System.out.println("delete - " + cnt);
 		
 	}
@@ -208,7 +208,7 @@ public class DaoHelperTest extends DaoBaseTest{
 			uc.setPasswd("passwd");
 			ucs.add(uc);
 		}
-		daoHelper.insert(ucs);
+		daoHelper.batchInsert(ucs);
 		for (UserChief uc:ucs) {
 			ids.add(uc.getId());
 		}
@@ -218,7 +218,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		rm.in(ids.toArray()).setId(Tpl.USING_LONG);
 		int cnt = 0;
 
-		cnt = daoHelper.remove(UserChief.class, ids);
+		cnt = daoHelper.removeByIds(UserChief.class, ids);
 		System.out.println("removed ids - " + cnt);
 		cnt = daoHelper.remove(UserChief.class, rm);
 		System.out.println("removed - " + cnt);
@@ -245,7 +245,7 @@ public class DaoHelperTest extends DaoBaseTest{
 			ucs.add(uc);
 			ids.add(uc.getId());
 		}
-		daoHelper.insert(ucs);
+		daoHelper.batchInsert(ucs);
 		
 		Cnd<UserChief> cnd = new Cnd<UserChief>(UserChief.class);
 		cnd.groupBy().use().setGenre(Tpl.USING_INT);
@@ -276,7 +276,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		UserChief ucAvg = daoHelper.fetch(UserChief.class,avg,null);
 		System.out.println(ucAvg);
 		
-		daoHelper.remove(UserChief.class, ids);
-		daoHelper.delete(UserChief.class, ids);
+		daoHelper.removeByIds(UserChief.class, ids);
+		daoHelper.deleteByIds(UserChief.class, ids);
 	}
 }

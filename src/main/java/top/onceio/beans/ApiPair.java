@@ -20,7 +20,6 @@ import com.google.gson.JsonSyntaxException;
 import top.onceio.exception.Failed;
 import top.onceio.mvc.annocations.Attr;
 import top.onceio.mvc.annocations.Param;
-import top.onceio.util.OAssert;
 import top.onceio.util.OReflectUtil;
 import top.onceio.util.OUtils;
 
@@ -82,6 +81,8 @@ public class ApiPair {
 		List<String> fromP = new ArrayList<>(method.getParameterCount());
 		List<String> fromA = new ArrayList<>(method.getParameterCount());
 		List<String> fromC = new ArrayList<>(method.getParameterCount());
+
+		System.out.print("\n--->" + method.getName());
 		for (Parameter param : method.getParameters()) {
 			Param paramAnn = param.getAnnotation(Param.class);
 			Attr attrAnn = param.getAnnotation(Attr.class);
@@ -98,7 +99,7 @@ public class ApiPair {
 				fromC.add(name);
 			}
 			//TODO
-			System.out.println("-- name -- " + name+ " ->" + method.getName());
+			System.out.print("  " + param.getType() + " " + param.getName() + ",");
 			if (name != null) {
 				if (nameType.containsKey(name)) {
 					Failed.throwError("变量%s，命名冲突", paramAnn.value());
@@ -179,5 +180,7 @@ public class ApiPair {
 		}
 		result.add(ps[ps.length-1], ja);
 	}
-
+	public static void main(String[] args) {
+		BeansEden.resovle("cn.xian.app");
+	}
 }

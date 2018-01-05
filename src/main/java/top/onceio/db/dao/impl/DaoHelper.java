@@ -319,7 +319,7 @@ public class DaoHelper implements DDLDao,TransDao{
 		}
 		
 	}
-	public <E extends OEntity> int insert(List<E> entities) {
+	public <E extends OEntity> int batchInsert(List<E> entities) {
 		OAssert.warnning(entities != null && !entities.isEmpty(),"不可以插入null");
 		Class<?> tbl = entities.get(0).getClass();
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
@@ -414,7 +414,7 @@ public class DaoHelper implements DDLDao,TransDao{
 		return jdbcHelper.update(sql, vals.toArray());
 	}
 
-	public <E extends OEntity> int remove(Class<E> tbl,Long id) {
+	public <E extends OEntity> int removeById(Class<E> tbl,Long id) {
 		if(id == null) return 0;
 		OAssert.warnning(id != null,"Long不能为null");
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
@@ -423,7 +423,7 @@ public class DaoHelper implements DDLDao,TransDao{
 		return jdbcHelper.update(sql, new Object[]{id});
 	}
 
-	public <E> int remove(Class<E> tbl, List<Long> ids) {
+	public <E> int removeByIds(Class<E> tbl, List<Long> ids) {
 		if(ids == null || ids.isEmpty()) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String stub = OUtils.genStub("?",",",ids.size());
@@ -453,13 +453,13 @@ public class DaoHelper implements DDLDao,TransDao{
 		}
 		return jdbcHelper.update(sql, sqlArgs.toArray());
 	}
-	public <E> int delete(Class<E> tbl, Long id) {
+	public <E> int deleteById(Class<E> tbl, Long id) {
 		if(id == null) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String sql = String.format("DELETE FROM %s WHERE id=? AND rm=true", tm.getTable());
 		return jdbcHelper.update(sql, new Object[]{id});
 	}
-	public <E> int delete(Class<E> tbl, List<Long> ids) {
+	public <E> int deleteByIds(Class<E> tbl, List<Long> ids) {
 		if(ids == null || ids.isEmpty()) return 0;
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		String stub = OUtils.genStub("?", ",", ids.size());

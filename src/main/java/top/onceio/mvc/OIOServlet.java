@@ -40,7 +40,6 @@ public class OIOServlet extends HttpServlet {
 	@Override
 	public void init() throws ServletException {
 	    super.init();
-		BeansEden.resovle("cn.xian.app");
 	}
 	
 	static <T> T readParam(HttpServletRequest req, Class<T> clazz) throws InstantiationException, IllegalAccessException, IOException{
@@ -85,7 +84,7 @@ public class OIOServlet extends HttpServlet {
         pw.printf("method %s\n", req.getMethod());
         pw.printf("URI: %s\n", req.getRequestURI());
         pw.printf("Param: %s\n", GSON.toJson(req.getParameterMap()));
-        ApiPair apiPair = BeansEden.search(ApiMethod.valueOf(req.getMethod())	, req.getRequestURI());
+        ApiPair apiPair = BeansEden.search(ApiMethod.valueOf(req.getMethod()), req.getRequestURI());
         if(apiPair != null) {
         	pw.printf("api:%s, ApiClass:%s\n",apiPair.getApi(),apiPair.getBean().getClass());
         	Map<String,Object> result = new HashMap<>();

@@ -178,6 +178,7 @@ public class BeansEden {
 		}
 		
 	}
+
 	private static void loadApiAutoApi() {
 		Set<Class<?>> definers = scanner.getClasses(Api.class,AutoApi.class);
 		for(Class<?> defClazz:definers) {

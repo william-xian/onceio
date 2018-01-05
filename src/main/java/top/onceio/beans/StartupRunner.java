@@ -54,7 +54,7 @@ public class StartupRunner {
 				}
     		}
     	}
-		dao.insert(i18ns);
+		dao.batchInsert(i18ns);
     }
 
     private void annlysisConst(){
@@ -100,7 +100,7 @@ public class StartupRunner {
 				}
     		}
     	}
-		dao.insert(i18ns);
+		dao.batchInsert(i18ns);
     }
     
     public void run(String... args) throws Exception {

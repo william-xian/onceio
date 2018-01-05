@@ -59,26 +59,26 @@ public class DaoHelperViewTest extends DaoBaseTest{
 			goodsOrderes.add(go);
 		}
 		
-		daoHelper.insert(ucs);
-		daoHelper.insert(goodses);
-		daoHelper.insert(goodsDesces);
-		daoHelper.insert(goodsOrderes);
+		daoHelper.batchInsert(ucs);
+		daoHelper.batchInsert(goodses);
+		daoHelper.batchInsert(goodsDesces);
+		daoHelper.batchInsert(goodsOrderes);
 	}
 	@AfterClass
 	public static void cleanup() {
 		Cnd<GoodsOrder> rm = new Cnd<>(GoodsOrder.class);
 		rm.ge().setId(0L);
 		List<Long> ids = Arrays.asList(1L,2L,3L,4L,5L);
-		daoHelper.remove(UserChief.class, ids);
-		daoHelper.remove(Goods.class, ids);
-		daoHelper.remove(GoodsDesc.class, ids);
+		daoHelper.removeByIds(UserChief.class, ids);
+		daoHelper.removeByIds(Goods.class, ids);
+		daoHelper.removeByIds(GoodsDesc.class, ids);
 		daoHelper.remove(GoodsOrder.class, rm);
 		Cnd<GoodsOrder> del = new Cnd<>(GoodsOrder.class);
 		del.ge().setId(0L);
 		daoHelper.delete(GoodsOrder.class, del);
-		daoHelper.delete(UserChief.class, ids);
-		daoHelper.delete(Goods.class, ids);
-		daoHelper.delete(GoodsDesc.class, ids);
+		daoHelper.deleteByIds(UserChief.class, ids);
+		daoHelper.deleteByIds(Goods.class, ids);
+		daoHelper.deleteByIds(GoodsDesc.class, ids);
 	}
 	
 	//@Test

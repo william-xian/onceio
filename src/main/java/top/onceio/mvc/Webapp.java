@@ -11,6 +11,8 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
 
+import top.onceio.beans.BeansEden;
+
 
 public class Webapp {
 	
@@ -22,6 +24,8 @@ public class Webapp {
         if(webPort == null || webPort.isEmpty()) {  
             webPort = "1230";
         }
+        //TODO
+        BeansEden.resovle("cn.xian.app");
         tomcat.setPort(Integer.valueOf(webPort));
 		try {
 			Context ctx = tomcat.addWebapp("/", new File(webappDirLocation).getAbsolutePath());

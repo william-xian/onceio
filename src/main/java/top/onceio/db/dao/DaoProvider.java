@@ -38,8 +38,8 @@ public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 	}
 
 	@Override
-	public int insert(List<T> entities) {
-		return daoHelper.insert(entities);
+	public int batchInsert(List<T> entities) {
+		return daoHelper.batchInsert(entities);
 	}
 
 	@Override
@@ -63,13 +63,13 @@ public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 	}
 
 	@Override
-	public int remove(Long id) {
-		return daoHelper.remove(tbl, id);
+	public int removeById(Long id) {
+		return daoHelper.removeById(tbl, id);
 	}
 
 	@Override
-	public int remove(List<Long> ids) {
-		return daoHelper.remove(tbl, ids);
+	public int removeByIds(List<Long> ids) {
+		return daoHelper.removeByIds(tbl, ids);
 	}
 
 	@Override
@@ -83,13 +83,13 @@ public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 	}
 
 	@Override
-	public int delete(Long id) {
-		return daoHelper.delete(tbl, id);
+	public int deleteById(Long id) {
+		return daoHelper.deleteById(tbl, id);
 	}
 
 	@Override
-	public int delete(List<Long> ids) {
-		return daoHelper.delete(tbl, ids);
+	public int deleteByIds(List<Long> ids) {
+		return daoHelper.deleteByIds(tbl, ids);
 	}
 
 	@Override
