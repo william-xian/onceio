@@ -13,5 +13,5 @@ import top.onceio.beans.ApiMethod;
 @Inherited
 public @interface Api {
 	String value() default "";
-	ApiMethod[] method() default {};
+	ApiMethod[] method() default {ApiMethod.GET};
 }
