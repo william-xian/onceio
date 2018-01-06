@@ -23,7 +23,7 @@ public class TransTest extends DaoBaseTest{
 		uc1.setGenre(1);
 		
 		jdbcHelper.beginTransaction(Connection.TRANSACTION_READ_COMMITTED);
-		String insertTpl = "insert into UserChief(id,rm,name,passwd,avatar,genre) values(?,?,?,?,?,?)";
+		String insertTpl = "INSERT INTO UserChief(id,rm,name,passwd,avatar,genre) VALUES(?,?,?,?,?,?)";
 		Long begin = System.currentTimeMillis();
 		for(int i = 0;  i < 10; i++) {
 			Savepoint spb1 = jdbcHelper.setSavepoint();
