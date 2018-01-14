@@ -11,21 +11,24 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
 
+import top.onceio.annotation.BeansIn;
 import top.onceio.beans.BeansEden;
 
-
-public class Webapp {
-	
+public class Webapp {	
 	private static String webappDirLocation = "src/main/webapp";
-  
     public static void run(Class<?> cnf,String[] args) {
     	Tomcat tomcat = new Tomcat();
         String webPort = System.getenv("PORT");  
         if(webPort == null || webPort.isEmpty()) {  
             webPort = "1230";
         }
-        //TODO
-        BeansEden.resovle("cn.xian.app");
+        BeansIn beansPackage = cnf.getDeclaredAnnotation(BeansIn.class);
+        if(beansPackage != null && beansPackage.value().length != 0) {
+        	BeansEden.resovle(beansPackage.value());
+        } else {
+        	String pkg = cnf.getPackage().getName();
+            BeansEden.resovle(pkg);
+        }
         tomcat.setPort(Integer.valueOf(webPort));
 		try {
 			Context ctx = tomcat.addWebapp("/", new File(webappDirLocation).getAbsolutePath());
