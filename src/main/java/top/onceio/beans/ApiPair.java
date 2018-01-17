@@ -180,7 +180,4 @@ public class ApiPair {
 		}
 		result.add(ps[ps.length-1], ja);
 	}
-	public static void main(String[] args) {
-		BeansEden.resovle("cn.xian.app");
-	}
 }

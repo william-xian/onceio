@@ -21,7 +21,7 @@ public class ClassScanner {
     	for(String pkg:packages) {
             URL url = classLoader.getResource(pkg.replace(".", "/"));
             String protocol = url.getProtocol();   
-            if ("file".equals(protocol)) { 
+            if ("file".equals(protocol)) {
                 // 本地自己可见的代码    
                 findClassLocal(pkg,consumer);  
             } else if ("jar".equals(protocol)) {    

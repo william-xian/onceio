@@ -12,8 +12,7 @@ import top.onceio.mvc.Webapp;
 public class Launcher {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, SQLException {
-
-    	Webapp.run(Launcher.class, args);
+		Webapp.run(Launcher.class, args);
 	}
 	
 }

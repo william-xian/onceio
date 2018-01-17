@@ -42,18 +42,31 @@ import top.onceio.util.OAssert;
 import top.onceio.util.OReflectUtil;
 
 public class BeansEden {
-
-	private static final Logger LOGGER = Logger.getLogger(BeansEden.class);
+	private final static Logger LOGGER = Logger.getLogger(BeansEden.class);
 	
-	private final static Map<String,Object> nameToBean = new HashMap<>();
+	private Map<String,Object> nameToBean = new HashMap<>();
 
-	private final static ApiResover apiResover = new ApiResover();
-	private final static Map<String,Object> nameToDef = new HashMap<>();
-	private final static Properties prop = new Properties();
+	private ApiResover apiResover = new ApiResover();
+	private Map<String,Object> nameToDef = new HashMap<>();
+	private Properties prop = new Properties();
 	
-	static {
+	private BeansEden() {
+	}
+
+	private static volatile BeansEden instance = null;
+
+	public static BeansEden get() {
+		synchronized (BeansEden.class) {
+			if (instance == null) {
+				instance = new BeansEden();
+			}
+		}
+		return instance;
+	}
+	private void loadDefaultProperties() {
 		try {
 			InputStream in = OnceIO.getClassLoader().getResourceAsStream("onceio.properties");
+			
 			prop.load(in);
 			in.close();
 		} catch (IOException e) {
@@ -61,13 +74,13 @@ public class BeansEden {
 		}
 	}
 	
-	private final static AnnotationScanner scanner = new AnnotationScanner(Api.class,AutoApi.class,
+	private AnnotationScanner scanner = new AnnotationScanner(Api.class,AutoApi.class,
 			Definer.class,Def.class,Using.class,
 			Tbl.class,TblView.class);
 	
 	
 
-	private static DataSource createDataSource() {
+	private DataSource createDataSource() {
 		String driver = prop.getProperty("onceio.datasource.driver");
 		String url = prop.getProperty("onceio.datasource.url");
 		String username =prop.getProperty("onceio.datasource.username");
@@ -83,22 +96,22 @@ public class BeansEden {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static List<Class<? extends OEntity>> matchTblTblView() {
-		List<Class<? extends OEntity>> entities= new LinkedList<>();
-		for(Class<?> clazz:scanner.getClasses(Tbl.class)) {
-			if(clazz.isAssignableFrom(OEntity.class)) {
-				entities.add((Class<? extends OEntity>)clazz);
+	public List<Class<? extends OEntity>> matchTblTblView() {
+		List<Class<? extends OEntity>> entities = new LinkedList<>();
+		for (Class<?> clazz : scanner.getClasses(Tbl.class)) {
+			if (OEntity.class.isAssignableFrom(clazz)) {
+				entities.add((Class<? extends OEntity>) clazz);
 			}
 		}
-		for(Class<?> clazz:scanner.getClasses(TblView.class)) {
-			if(clazz.isAssignableFrom(OEntity.class)) {
-				entities.add((Class<? extends OEntity>)clazz);
+		for (Class<?> clazz : scanner.getClasses(TblView.class)) {
+			if (OEntity.class.isAssignableFrom(clazz)) {
+				entities.add((Class<? extends OEntity>) clazz);
 			}
 		}
 		return entities;
 	}
 	
-	private static IdGenerator createIdGenerator() {
+	private IdGenerator createIdGenerator() {
 		return new IdGenerator(){
 			@Override
 			public Long next(Class<?> entityClass) {
@@ -108,7 +121,7 @@ public class BeansEden {
 		};
 	}
 	
-	private static DaoHelper createDaoHelper(DataSource ds,IdGenerator idGenerator,List<Class<? extends OEntity>> entities) {
+	private DaoHelper createDaoHelper(DataSource ds,IdGenerator idGenerator,List<Class<? extends OEntity>> entities) {
 		DaoHelper daoHelper = new DaoHelper();
 		JdbcHelper jdbcHelper = new JdbcHelper();
 		jdbcHelper.setDataSource(ds);
@@ -116,7 +129,7 @@ public class BeansEden {
 		return daoHelper;
 	}
 	
-	private static void loadConfig(Class<?> clazz,Object bean,Field field) {
+	private void loadConfig(Class<?> clazz,Object bean,Field field) {
 		Config cnfAnn = field.getAnnotation(Config.class);
 		if(cnfAnn != null) {
 			Class<?> fieldType = field.getType();
@@ -139,7 +152,7 @@ public class BeansEden {
 		}
 	}
 	
-	private static void loadConfig(Class<?> clazz,Object bean) {
+	private void loadConfig(Class<?> clazz,Object bean) {
 		if(clazz!= null && bean != null) {
 			for(Field field:clazz.getFields()) {
 				loadConfig(clazz,bean,field);
@@ -147,7 +160,7 @@ public class BeansEden {
 		}
 	}
 	
-	private static void loadDefiner() {
+	private void loadDefiner() {
 		Set<Class<?>> definers = scanner.getClasses(Definer.class);
 		for(Class<?> defClazz:definers) {
 			try {
@@ -181,11 +194,11 @@ public class BeansEden {
 		
 	}
 
-	private static void loadApiAutoApi() {
+	private void loadApiAutoApi() {
 		Set<Class<?>> definers = scanner.getClasses(Api.class,AutoApi.class);
 		for(Class<?> defClazz:definers) {
 			if(LOGGER.isDebugEnabled()) {
-				LOGGER.debug("load Apis: "+defClazz.getName());
+				LOGGER.debug("load Api: "+defClazz.getName());
 			}
 			try {
 				Object bean = defClazz.newInstance();
@@ -197,7 +210,7 @@ public class BeansEden {
 		
 	}
 
-	private static void linkBeans() {
+	private void linkBeans() {
 		Iterator<Object> beans = nameToBean.values().iterator();
 
 		while(beans.hasNext()) {
@@ -227,7 +240,7 @@ public class BeansEden {
 		}
 	}
 	
-	private static void executeOnCreate(Object bean,Method method) {
+	private void executeOnCreate(Object bean,Method method) {
 		OnCreate onCreateAnn = method.getAnnotation(OnCreate.class);
 		if(onCreateAnn != null) {
 			if(method.getParameterCount() == 0) {
@@ -243,7 +256,7 @@ public class BeansEden {
 		}
 	}
 
-	private static void checkOnDestroy(Object bean,Method method) {
+	private void checkOnDestroy(Object bean,Method method) {
 		OnDestroy onDestroyAnn = method.getAnnotation(OnDestroy.class);
 		if(onDestroyAnn != null) {
 			if(method.getParameterCount() == 0) {
@@ -254,7 +267,7 @@ public class BeansEden {
 		}
 	}
 	
-	private static void resoveApi(Class<?> clazz,Api fatherApi,Api methodApi,Object bean,Method method){
+	private void resoveApi(Class<?> clazz,Api fatherApi,Api methodApi,Object bean,Method method){
 		String api = fatherApi.value() + methodApi.value();
 		ApiMethod[] apiMethods = methodApi.method();
 		if(apiMethods.length == 0) {
@@ -268,7 +281,7 @@ public class BeansEden {
 		}
 	}
 
-	private static void resoveAutoApi(Class<?> clazz, AutoApi autoApi,Api methodApi, Object bean, Method method,String methodName) {
+	private void resoveAutoApi(Class<?> clazz, AutoApi autoApi,Api methodApi, Object bean, Method method,String methodName) {
 		String api = autoApi.value().getSimpleName().toLowerCase();
 		if(methodName != null) {
 			api = api+"/" + methodName;
@@ -278,11 +291,11 @@ public class BeansEden {
 		}
 	}
 	
-	private static void resoveDef(Class<?> clazz,Def def,Object bean){
+	private void resoveDef(Class<?> clazz,Def def,Object bean){
 		nameToDef.put(clazz.getName()+":"+def.value(), bean);
 	}
 	
-	private static void resoveBeanMethod() {
+	private void resoveBeanMethod() {
 		Iterator<Object> beans = nameToBean.values().iterator();
 		while(beans.hasNext()) {
 			Object bean = beans.next();
@@ -328,7 +341,8 @@ public class BeansEden {
 		apiResover.build();
 	}
 
-	public static void resovle(String... packages) {
+	public void resovle(String... packages) {
+		loadDefaultProperties();
 		nameToBean.clear();
 		scanner.scanPackages(packages);
 		
@@ -359,7 +373,7 @@ public class BeansEden {
 		
 	}
 	
-	protected static <T> void store(Class<T> clazz,String beanName,Object bean) {
+	protected <T> void store(Class<T> clazz,String beanName,Object bean) {
 		if(beanName  == null) {
 			beanName = "";
 		}
@@ -367,12 +381,12 @@ public class BeansEden {
 		nameToBean.put(clazz.getName()+":" + beanName,bean);
 	}
 	
-	public static <T> T load(Class<T> clazz) {
+	public <T> T load(Class<T> clazz) {
 		return load(clazz,null);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T load(Class<T> clazz, String beanName) {
+	public <T> T load(Class<T> clazz, String beanName) {
 		if(beanName  == null) {
 			beanName = "";
 		}
@@ -383,7 +397,7 @@ public class BeansEden {
 		return null;
 	}
 	
-	public static <T> void erase(Class<T> clazz, String beanName) {
+	public <T> void erase(Class<T> clazz, String beanName) {
 		if (beanName == null) {
 			beanName = "";
 		}
@@ -408,7 +422,8 @@ public class BeansEden {
 		}
 	}
 	
-	public static ApiPair search(ApiMethod apiMethod,String uri) {
+	public ApiPair search(ApiMethod apiMethod,String uri) {
+		System.out.println("search apiResover" + apiResover.getClass().getClassLoader());
 		return apiResover.search(apiMethod,uri);
 	}
 }

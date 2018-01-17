@@ -25,7 +25,7 @@ import top.onceio.beans.ApiPair;
 import top.onceio.beans.BeansEden;
 import top.onceio.util.OUtils;
 
-@WebServlet(value = "/", asyncSupported = false)
+@WebServlet(value="/",asyncSupported = false)
 public class OIOServlet extends HttpServlet {
 
     /**
@@ -84,7 +84,7 @@ public class OIOServlet extends HttpServlet {
         pw.printf("method %s\n", req.getMethod());
         pw.printf("URI: %s\n", req.getRequestURI());
         pw.printf("Param: %s\n", GSON.toJson(req.getParameterMap()));
-        ApiPair apiPair = BeansEden.search(ApiMethod.valueOf(req.getMethod()), req.getRequestURI());
+        ApiPair apiPair = BeansEden.get().search(ApiMethod.valueOf(req.getMethod()), req.getRequestURI());
         if(apiPair != null) {
         	pw.printf("api:%s, ApiClass:%s\n",apiPair.getApi(),apiPair.getBean().getClass());
         	Map<String,Object> result = new HashMap<>();

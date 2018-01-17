@@ -1,15 +1,18 @@
 package top.onceio.beans;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import top.onceio.util.OUtils;
 
 public class ApiResover {
 
-	private TreeMap<String, ApiPair> fixedUri = new TreeMap<>();
+	private Map<String, ApiPair> fixedUri = new TreeMap<>();
 
 	public ApiResover push(ApiMethod apiMethod, String api, Object bean, Method method) {
 		StringBuilder sb = new StringBuilder();
@@ -25,10 +28,10 @@ public class ApiResover {
 		fixedUri.put(apiMethod.name() + ":" + pattern, new ApiPair(apiMethod, api, bean, method));
 		return this;
 	}
-	private String[] apis = null;
+	private List<String> apis = new ArrayList<>();
 	public ApiResover build() {
-		apis = fixedUri.keySet().toArray(new String[0]);
-		Arrays.sort(apis, new Comparator<String>() {
+		apis.addAll(fixedUri.keySet());
+		Collections.sort(apis, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
 				return String.CASE_INSENSITIVE_ORDER.compare(o2, o1);
