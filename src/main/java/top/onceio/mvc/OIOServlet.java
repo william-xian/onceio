@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
 
+import top.onceio.annotation.BeansIn;
 import top.onceio.beans.ApiMethod;
 import top.onceio.beans.ApiPair;
 import top.onceio.beans.BeansEden;
@@ -35,13 +36,28 @@ public class OIOServlet extends HttpServlet {
 	
 	private final static Gson GSON = new Gson();
 	
-	
-	
 	@Override
 	public void init() throws ServletException {
 	    super.init();
+	    Class<?> cnf;
+		try {
+			cnf = Class.forName("cn.xian.app.Launcher");
+			loadBeans(cnf);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-	
+    private static void loadBeans(Class<?> cnf) {
+        BeansIn beansPackage = cnf.getDeclaredAnnotation(BeansIn.class);
+        if(beansPackage != null && beansPackage.value().length != 0) {
+        	BeansEden.get().resovle(beansPackage.value());
+        } else {
+        	String pkg = cnf.getPackage().getName();
+            BeansEden.get().resovle(pkg);
+        }
+        
+    }
 	static <T> T readParam(HttpServletRequest req, Class<T> clazz) throws InstantiationException, IllegalAccessException, IOException{
 		T result = clazz.newInstance();
 		req.getParameterMap();

@@ -14,9 +14,6 @@ import org.apache.catalina.webresources.StandardRoot;
 import org.apache.log4j.Logger;
 
 import cn.xian.app.Launcher;
-import top.onceio.OnceIO;
-import top.onceio.annotation.BeansIn;
-import top.onceio.beans.BeansEden;
 
 public class Webapp {
 
@@ -41,8 +38,6 @@ public class Webapp {
 				@Override
 				public void lifecycleEvent(LifecycleEvent event) {
 					if(event.getLifecycle().getState() == LifecycleState.INITIALIZED) {
-						OnceIO.setClassLoader(event.getClass().getClassLoader());
-						loadBeans(cnf);
 					}else if(event.getLifecycle().getState() == LifecycleState.STARTING){
 						LOGGER.debug("started  " + event.getClass().getClassLoader());
 					}
@@ -60,14 +55,5 @@ public class Webapp {
 		}
     }
     
-    private static void loadBeans(Class<?> cnf) {
-        BeansIn beansPackage = cnf.getDeclaredAnnotation(BeansIn.class);
-        if(beansPackage != null && beansPackage.value().length != 0) {
-        	BeansEden.get().resovle(beansPackage.value());
-        } else {
-        	String pkg = cnf.getPackage().getName();
-            BeansEden.get().resovle(pkg);
-        }
-        
-    }
+
 }
