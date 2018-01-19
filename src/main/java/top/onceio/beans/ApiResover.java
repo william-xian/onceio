@@ -19,7 +19,7 @@ public class ApiResover {
 		String[] ts = api.split("/");
 		for (String s : ts) {
 			if (s.startsWith("{") && s.endsWith("}")) {
-				sb.append("/[^/]*");
+				sb.append("/[^/]+");
 			} else if (!s.isEmpty()) {
 				sb.append("/" + s);
 			}

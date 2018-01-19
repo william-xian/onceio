@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.tomcat.jdbc.pool.DataSource;
+import com.alibaba.druid.pool.DruidDataSource;
 
 import cn.xian.app.entity.Goods;
 import cn.xian.app.entity.GoodsDesc;
@@ -38,7 +38,7 @@ public class DaoBaseTest {
 		String username =prop.getProperty("onceio.datasource.username");
 		String password = prop.getProperty("onceio.datasource.password");
 		String maxActive = prop.getProperty("onceio.datasource.maxActive");
-		DataSource ds = new DataSource();
+		DruidDataSource ds = new DruidDataSource();
 		ds.setDriverClassName(driver);
 		ds.setUrl(url);
 		ds.setUsername(username);

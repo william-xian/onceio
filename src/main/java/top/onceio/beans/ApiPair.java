@@ -1,17 +1,19 @@
 package top.onceio.beans;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
@@ -21,7 +23,6 @@ import top.onceio.exception.Failed;
 import top.onceio.mvc.annocations.Attr;
 import top.onceio.mvc.annocations.Param;
 import top.onceio.util.OReflectUtil;
-import top.onceio.util.OUtils;
 
 public class ApiPair {
 	
@@ -33,6 +34,7 @@ public class ApiPair {
 	private Method method;
 	private Map<String,Integer> nameVarIndex;
 	private Map<String,Class<?>> nameType;
+	private List<String> argNames;
 	
 	
 	public ApiMethod getApiMethod() {
@@ -78,40 +80,35 @@ public class ApiPair {
 			
 		}
 		nameType = new HashMap<>(method.getParameterCount());
-		List<String> fromP = new ArrayList<>(method.getParameterCount());
-		List<String> fromA = new ArrayList<>(method.getParameterCount());
-		List<String> fromC = new ArrayList<>(method.getParameterCount());
-
-		System.out.print("\n--->" + method.getName());
+		argNames = new ArrayList<>(method.getParameterCount());
 		for (Parameter param : method.getParameters()) {
 			Param paramAnn = param.getAnnotation(Param.class);
 			Attr attrAnn = param.getAnnotation(Attr.class);
 			top.onceio.mvc.annocations.Cookie cookieAnn = param.getAnnotation(top.onceio.mvc.annocations.Cookie.class);
 			String name = null;
 			if (paramAnn != null) {
-				name = paramAnn.value();
-				fromP.add(name);
+				name = "P-"+paramAnn.value();
 			} else if (attrAnn != null) {
-				name = attrAnn.value();
-				fromA.add(name);
+				name = "A-"+attrAnn.value();
 			} else if (cookieAnn != null) {
-				name = cookieAnn.value();
-				fromC.add(name);
+				name = "C-"+cookieAnn.value();
 			}
-			//TODO
-			System.out.print("  " + param.getType() + " " + param.getName() + ",");
 			if (name != null) {
 				if (nameType.containsKey(name)) {
 					Failed.throwError("变量%s，命名冲突", paramAnn.value());
 				}
 				nameType.put(name, param.getType());
 			}
+			argNames.add(name);
 		}
 	}
-	public void resoveUriParams(Map<String, Object> result, String uri) {
-		String[] uris = uri.split("/");
-		System.out.println(OUtils.toJSON(nameVarIndex));
-		System.out.println(OUtils.toJSON(nameType));
+	/**
+	 * 根据方法参数及其注解，从req（Attr,Param,Body,Cooke)中取出数据
+	 * @param result
+	 * @param req
+	 */	
+	public Object[] resoveReqParams(Map<String,Object> result, HttpServletRequest req) {
+		String[] uris = req.getRequestURI().split("/");
 		for (String name : nameVarIndex.keySet()) {
 			Integer i = nameVarIndex.get(name);
 			String v = uris[i];
@@ -119,37 +116,57 @@ public class ApiPair {
 			Object obj = OReflectUtil.strToBaseType(type, v);
 			result.put(name, obj);
 		}
-	}
-
-	/**
-	 * 根据方法参数及其注解，从req（Attr,Param,Body,Cooke)中取出数据
-	 * @param result
-	 * @param req
-	 * @throws JsonSyntaxException
-	 * @throws JsonIOException
-	 * @throws IOException
-	 */	
-	public void resoveReqParams(Map<String,Object> result, HttpServletRequest req) throws JsonSyntaxException, JsonIOException, IOException {
-		JsonObject json = GSON.fromJson(req.getReader(), JsonObject.class);
-		Map<String,String[]> map = req.getParameterMap();
-		for(String key:map.keySet()) {
-			String[] val = map.get(key);
-			if(val.length == 1) {
-				setStringByPath(json,key,val[0]);
-			} else if(val.length > 2) {
-				setArrayByPath(json,key,val);
-			}
+		JsonObject json = null;
+		try {
+			json = GSON.fromJson(req.getReader(), JsonObject.class);
+		} catch (JsonSyntaxException | JsonIOException | IOException e) {
+			e.printStackTrace();
 		}
+		if(json == null) {
+			json = new JsonObject();
+		}
+		Map<String,String[]> map = req.getParameterMap();
+		Set<String> keys = new HashSet<>(map.keySet());
 		for(String name:nameType.keySet()) {
 			Class<?> type = nameType.get(name);
 			if(OReflectUtil.isBaseType(type)) {
-				result.put(name, OReflectUtil.strToBaseType(type, map.get(name)[0]));
+				String[] vals = map.get(name);
+				if(vals != null) {
+					keys.remove(name);
+					if(vals.length == 1) {
+						result.put(name, OReflectUtil.strToBaseType(type, vals[0]));
+					}
+				}
 			}
-			Object v = GSON.fromJson(json.toString(), type);
-			result.put(name, v);
 		}
+		Object[] args = new Object[argNames.size()];
+		//TODO
+		for(String pName:argNames) {
+			String name = pName.substring(2);
+			String p = pName.substring(0, 2);
+			if(p.equals("P-")) {
+				
+			}else if(p.equals("A-")) {
+				
+			}else if(p.equals("C-")) {
+				
+			}
+		}
+		return args;
 	}
 	
+	public Object invoke(HttpServletRequest req) {
+    	Map<String,Object> result = new HashMap<>();
+    	resoveReqParams(result, req);
+    	Object[] args = new Object[method.getParameterCount()];
+		Object obj = null;
+		try {
+			obj = method.invoke(bean, args);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		return obj;
+	}
 	
 
 	private static JsonObject obtainFather(JsonObject obj,String[] path) {
@@ -164,20 +181,5 @@ public class ApiPair {
 			result = je.getAsJsonObject();
 		}
 		return result;
-	}
-	
-	private static void setStringByPath(JsonObject obj,String path,String val) {
-		String[] ps = path.split(".");
-		JsonObject result = obtainFather(obj,ps);
-		result.addProperty(ps[ps.length-1], val);
-	}
-	private static void setArrayByPath(JsonObject obj,String path,String[] vals) {
-		String[] ps = path.split(".");
-		JsonObject result = obtainFather(obj,ps);
-		JsonArray ja = new JsonArray();
-		for(String v:vals) {
-			ja.add(v);
-		}
-		result.add(ps[ps.length-1], ja);
 	}
 }

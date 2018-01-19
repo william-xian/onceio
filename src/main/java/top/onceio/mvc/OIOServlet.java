@@ -39,12 +39,12 @@ public class OIOServlet extends HttpServlet {
 	@Override
 	public void init() throws ServletException {
 	    super.init();
+	    String launcherClass = getInitParameter("launcher");
 	    Class<?> cnf;
 		try {
-			cnf = Class.forName("cn.xian.app.Launcher");
+			cnf = Class.forName(launcherClass);
 			loadBeans(cnf);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -103,10 +103,8 @@ public class OIOServlet extends HttpServlet {
         ApiPair apiPair = BeansEden.get().search(ApiMethod.valueOf(req.getMethod()), req.getRequestURI());
         if(apiPair != null) {
         	pw.printf("api:%s, ApiClass:%s\n",apiPair.getApi(),apiPair.getBean().getClass());
-        	Map<String,Object> result = new HashMap<>();
-        	apiPair.resoveUriParams(result, req.getRequestURI());
-        	apiPair.resoveReqParams(result, req);
-        	pw.printf("param : %s", OUtils.toJSON(result));
+        	Object obj = apiPair.invoke(req);
+        	pw.printf("param : %s", OUtils.toJSON(obj));
         }
         pw.close();
 
