@@ -7,14 +7,12 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -34,7 +32,7 @@ public class ApiPair {
 	private Method method;
 	private Map<String,Integer> nameVarIndex;
 	private Map<String,Class<?>> nameType;
-	private List<String> argNames;
+	private ArrayList<String> argNames;
 	
 	
 	public ApiMethod getApiMethod() {
@@ -141,18 +139,52 @@ public class ApiPair {
 		}
 		Object[] args = new Object[argNames.size()];
 		//TODO
-		for(String pName:argNames) {
+		for(int i = 0; i < argNames.size(); i++) {
+			String pName = argNames.get(i);
 			String name = pName.substring(2);
 			String p = pName.substring(0, 2);
+			Class<?> type = nameType.get(name);
+			if(!type.isArray()) {
+				type.getComponentType();
+				
+			} else {
+				
+			}
 			if(p.equals("P-")) {
+				String val = req.getParameter(name);
 				
-			}else if(p.equals("A-")) {
+				req.getParameterValues(name);
 				
-			}else if(p.equals("C-")) {
+			} else if(p.equals("A-")) {
+				
+			} else if(p.equals("C-")) {
 				
 			}
 		}
 		return args;
+	}
+	
+	private static void setObjectByPath(JsonObject json,String path,Object obj) {
+		String[] ps = path.split(".");
+		JsonObject jobj = json;
+		for(String p:ps) {
+			jobj = jobj.getAsJsonObject(p);
+			if(jobj == null) {
+				jobj = new JsonObject();
+				jobj.add(p, jobj);
+			}
+		}
+	}
+	private static JsonObject getObjectByPath(JsonObject json,String path) {
+		String[] ps = path.split(".");
+		JsonObject jobj = json;
+		for(String p:ps) {
+			jobj = jobj.getAsJsonObject(p);
+			if(jobj == null) {
+				return null;
+			}
+		}
+		return jobj;
 	}
 	
 	public Object invoke(HttpServletRequest req) {
@@ -168,18 +200,4 @@ public class ApiPair {
 		return obj;
 	}
 	
-
-	private static JsonObject obtainFather(JsonObject obj,String[] path) {
-		JsonObject result = obj;
-		for(int i = 0; i < path.length -1; i++) {
-			String pi = path[i];
-			JsonElement je = result.get(pi);
-			if(je == null) {
-				je = new JsonObject();
-				result.add(pi, je);
-			}
-			result = je.getAsJsonObject();
-		}
-		return result;
-	}
 }
