@@ -47,7 +47,6 @@ public class BeansEden {
 	private Map<String,Object> nameToBean = new HashMap<>();
 
 	private ApiResover apiResover = new ApiResover();
-	private Map<String,Object> nameToDef = new HashMap<>();
 	private Properties prop = new Properties();
 	
 	private BeansEden() {
@@ -191,9 +190,21 @@ public class BeansEden {
 				LOGGER.error(e.getMessage(),e);
 			}
 		}
-		
 	}
-
+	private void loadDefined() {
+		Set<Class<?>> definers = scanner.getClasses(Def.class);
+		for(Class<?> defClazz:definers) {
+			try {
+				Object bean = defClazz.newInstance();
+				Def defAnn = defClazz.getAnnotation(Def.class);
+				String beanName = defAnn.value();
+				System.out.println(">>>" + defClazz.getName());
+				store(defClazz,beanName, bean);
+			} catch (InstantiationException|IllegalAccessException e) {
+				LOGGER.error(e.getMessage(),e);
+			}
+		}
+	}
 	private void loadApiAutoApi() {
 		Set<Class<?>> definers = scanner.getClasses(Api.class,AutoApi.class);
 		for(Class<?> defClazz:definers) {
@@ -207,22 +218,19 @@ public class BeansEden {
 				LOGGER.error(e.getMessage(),e);
 			}
 		}
-		
 	}
 
 	private void linkBeans() {
 		Iterator<Object> beans = nameToBean.values().iterator();
-
 		while(beans.hasNext()) {
 			Object bean = beans.next();
 			Class<?> clazz = bean.getClass();
-			for(Field field : clazz.getFields()) {
-				
+			for(Field field : clazz.getDeclaredFields()) {
 				loadConfig(clazz,bean,field);
-				
 				Using usingAnn = field.getAnnotation(Using.class);
 				if(usingAnn != null) {
 					Class<?> fieldType = field.getType();
+					field.setAccessible(true);
 					Object fieldBean = load(fieldType,usingAnn.value());
 					if(fieldBean != null) {
 						try {
@@ -291,10 +299,6 @@ public class BeansEden {
 		}
 	}
 	
-	private void resoveDef(Class<?> clazz,Def def,Object bean){
-		nameToDef.put(clazz.getName()+":"+def.value(), bean);
-	}
-	
 	private void resoveBeanMethod() {
 		Iterator<Object> beans = nameToBean.values().iterator();
 		while(beans.hasNext()) {
@@ -311,7 +315,6 @@ public class BeansEden {
 					resoveApi(clazz,fatherApi,methodApi,bean,method);
 				}
 				if(autoApi != null && methodApi != null) {
-					
 					ignoreMethods.add(method.getName()+method.getParameterTypes().hashCode());
 					
 					if(!methodApi.value().equals("")) {
@@ -331,10 +334,6 @@ public class BeansEden {
 						
 					}
 				}
-			}
-			Def def = clazz.getAnnotation(Def.class);
-			if(def != null) {
-				resoveDef(clazz,def,bean);
 			}
 		}
 
@@ -365,8 +364,10 @@ public class BeansEden {
 			daoHelper = createDaoHelper(ds,idGenerator,matchTblTblView());
 			store(DaoHelper.class,null,daoHelper);
 		}
-		loadApiAutoApi();
+		loadDefined();
 		
+		loadApiAutoApi();
+
 		linkBeans();
 		
 		resoveBeanMethod();
@@ -423,7 +424,6 @@ public class BeansEden {
 	}
 	
 	public ApiPair search(ApiMethod apiMethod,String uri) {
-		System.out.println("search apiResover" + apiResover.getClass().getClassLoader());
 		return apiResover.search(apiMethod,uri);
 	}
 }

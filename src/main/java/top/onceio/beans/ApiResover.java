@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import top.onceio.util.OUtils;
-
 public class ApiResover {
 
 	private Map<String, ApiPair> fixedUri = new TreeMap<>();
@@ -53,7 +51,6 @@ public class ApiResover {
 	 */
 	public ApiPair search(ApiMethod apiMethod, String uri) {
 		String target = apiMethod.name() + ":" + uri;
-		System.out.println(OUtils.toJSON(apis) + " vs " + target);
 		for(String api:apis) {
 			if (target.matches(api)) {
 				return fixedUri.get(api);

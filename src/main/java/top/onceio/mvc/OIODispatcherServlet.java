@@ -52,10 +52,6 @@ public class OIODispatcherServlet extends HttpServlet {
         
     }
 	
-	void writeRepsone(HttpServletResponse resp, Object obj) throws IOException {
-
-	}
-	
 	@Override
 	public void destroy() {
 	    System.out.println("servlet销毁！");
@@ -65,7 +61,7 @@ public class OIODispatcherServlet extends HttpServlet {
 	@Override
 	public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
         HttpServletRequest  req;
-        HttpServletResponse resp;    
+        HttpServletResponse resp;
         if (!(request instanceof HttpServletRequest &&
         		response instanceof HttpServletResponse)) {
             throw new ServletException("non-HTTP request or response");

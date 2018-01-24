@@ -19,10 +19,11 @@ public class UserApi {
 		return "Hello, "+ username;
 	}
 	@Api("/age/{username}")
-	public Map<String,Object> age(@Param("username")String username,@Param("age")Integer age) {
+	public Map<String,Object> age(@Param("username")String username,@Param("passwd")String passwd) {
 		Map<String,Object> map = new HashMap<>();
 		map.put("username", username);
-		map.put("age", age);
+		map.put("passwd", passwd);
+		map.put("isOk",userService.signup(username, passwd));
 		return map;
 	}
 }

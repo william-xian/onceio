@@ -6,6 +6,6 @@ import top.onceio.mvc.annocations.Def;
 public class UserService {
 	
 	public boolean signup(String account,String passwd) {
-		return true;
+		return account.equals(passwd);
 	}
 }
