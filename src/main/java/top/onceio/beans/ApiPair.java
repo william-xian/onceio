@@ -127,20 +127,22 @@ public class ApiPair {
 		Map<String,String[]> map = req.getParameterMap();
 		for (Map.Entry<String, String[]> entry : map.entrySet()) {
 			String[] vals = entry.getValue();
-			String[] ps = entry.getKey().split(".");
-			System.out.println(entry.getKey());
-			System.out.println(ps.length);
+			String name = entry.getKey();
+			String[] ps = name.split("\\.");
+			String pname = name;
+			JsonObject jobj = json;
 			if(ps.length > 0) {
-				JsonObject jobj = setObjectByPath(json,ps);
-				if(vals != null && vals.length == 1) {
-					jobj.addProperty(ps[ps.length - 1], vals[0]);
-				} else {
-					JsonArray ja = new JsonArray();
-					for(String v:vals) {
-						ja.add(v);
-					}
-					jobj.add(ps[ps.length - 1], ja);
+				pname = ps[ps.length-1];
+				jobj = getOrCreateFatherByPath(json,ps);
+			}
+			if(vals != null && vals.length == 1) {
+				jobj.addProperty(pname, vals[0]);
+			} else {
+				JsonArray ja = new JsonArray();
+				for(String v:vals) {
+					ja.add(v);
 				}
+				jobj.add(pname, ja);
 			}
 		}
 		Object[] args = new Object[method.getParameterCount()];
@@ -183,7 +185,7 @@ public class ApiPair {
 		return args;
 	}
 	
-	private static JsonObject setObjectByPath(JsonObject json,String[] ps) {
+	private static JsonObject getOrCreateFatherByPath(JsonObject json,String[] ps) {
 		JsonObject jobj = json;
 		for(int i = 0; i < ps.length -1 ; i++) {
 			String p = ps[i];

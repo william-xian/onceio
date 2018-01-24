@@ -26,7 +26,7 @@ public class Webapp {
         server.setConnectors(new Connector[] { connector });
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");
-        context.addServlet(OIOServlet.class, "/").setInitParameter("launcher", cnf.getName());
+        context.addServlet(OIODispatcherServlet.class, "/").setInitParameter("launcher", cnf.getName());
         context.setResourceBase("src/main/webapp");
         HandlerCollection handlers = new HandlerCollection();
         handlers.setHandlers(new Handler[] { context, new DefaultHandler() });
