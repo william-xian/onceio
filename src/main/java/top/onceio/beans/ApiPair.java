@@ -6,21 +6,20 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
-import top.onceio.exception.Failed;
 import top.onceio.mvc.annocations.Attr;
 import top.onceio.mvc.annocations.Param;
-import top.onceio.util.OReflectUtil;
 
 public class ApiPair {
 	
@@ -32,7 +31,10 @@ public class ApiPair {
 	private Method method;
 	private Map<String,Integer> nameVarIndex;
 	private Map<String,Class<?>> nameType;
-	private ArrayList<String> argNames;
+	private Map<Integer,String> paramNameArgIndex;
+	private Map<Integer,String> attrNameArgIndex;
+	private List<Integer> reqIndex;
+	private List<Integer> respIndex;
 	
 	
 	public ApiMethod getApiMethod() {
@@ -73,47 +75,40 @@ public class ApiPair {
 				int end = name.length() - 1;
 				if (name.charAt(0) == '{' && name.charAt(end) == '}') {
 					nameVarIndex.put(name.substring(1, end), i);
-				}	
+				}
 			}
 			
 		}
-		nameType = new HashMap<>(method.getParameterCount());
-		argNames = new ArrayList<>(method.getParameterCount());
-		for (Parameter param : method.getParameters()) {
-			Param paramAnn = param.getAnnotation(Param.class);
-			Attr attrAnn = param.getAnnotation(Attr.class);
-			top.onceio.mvc.annocations.Cookie cookieAnn = param.getAnnotation(top.onceio.mvc.annocations.Cookie.class);
-			String name = null;
-			if (paramAnn != null) {
-				name = "P-"+paramAnn.value();
-			} else if (attrAnn != null) {
-				name = "A-"+attrAnn.value();
-			} else if (cookieAnn != null) {
-				name = "C-"+cookieAnn.value();
-			}
-			if (name != null) {
-				if (nameType.containsKey(name)) {
-					Failed.throwError("变量%s，命名冲突", paramAnn.value());
+		if(method.getParameterCount() > 0) {
+			nameType = new HashMap<>(method.getParameterCount());
+			paramNameArgIndex = new HashMap<>(method.getParameterCount());
+			attrNameArgIndex = new HashMap<>(method.getParameterCount());
+			reqIndex = new ArrayList<>(method.getParameterCount());
+			respIndex = new ArrayList<>(method.getParameterCount());
+			Parameter[] params = method.getParameters();
+			for (int i = 0; i < params.length; i++) {
+				Parameter param = method.getParameters()[i];
+				Param paramAnn = param.getAnnotation(Param.class);
+				Attr attrAnn = param.getAnnotation(Attr.class);
+				if (paramAnn != null) {
+					paramNameArgIndex.put(i,paramAnn.value());
+					nameType.put(paramAnn.value(), param.getType());
+				} else if (attrAnn != null) {
+					attrNameArgIndex.put(i,attrAnn.value());
+				}else if(HttpServletRequest.class.isAssignableFrom(param.getType())) {
+					reqIndex.add(i);
+				}else if(HttpServletResponse.class.isAssignableFrom(param.getType())) {
+					respIndex.add(i);
 				}
-				nameType.put(name, param.getType());
 			}
-			argNames.add(name);
 		}
 	}
 	/**
-	 * 根据方法参数及其注解，从req（Attr,Param,Body,Cooke)中取出数据
+	 * 根据方法参数及其注解，从req（Attr,Param,Body,Cookie)中取出数据
 	 * @param result
 	 * @param req
 	 */	
-	public Object[] resoveReqParams(Map<String,Object> result, HttpServletRequest req) {
-		String[] uris = req.getRequestURI().split("/");
-		for (String name : nameVarIndex.keySet()) {
-			Integer i = nameVarIndex.get(name);
-			String v = uris[i];
-			Class<?> type = nameType.get(name);
-			Object obj = OReflectUtil.strToBaseType(type, v);
-			result.put(name, obj);
-		}
+	public Object[] resoveReqParams(HttpServletRequest req, HttpServletResponse resp) {
 		JsonObject json = null;
 		try {
 			json = GSON.fromJson(req.getReader(), JsonObject.class);
@@ -123,74 +118,85 @@ public class ApiPair {
 		if(json == null) {
 			json = new JsonObject();
 		}
+		String[] uris = req.getRequestURI().split("/");
+		for (String name : nameVarIndex.keySet()) {
+			Integer i = nameVarIndex.get(name);
+			String v = uris[i];
+			json.addProperty(name, v);
+		}
 		Map<String,String[]> map = req.getParameterMap();
-		Set<String> keys = new HashSet<>(map.keySet());
-		for(String name:nameType.keySet()) {
-			Class<?> type = nameType.get(name);
-			if(OReflectUtil.isBaseType(type)) {
-				String[] vals = map.get(name);
-				if(vals != null) {
-					keys.remove(name);
-					if(vals.length == 1) {
-						result.put(name, OReflectUtil.strToBaseType(type, vals[0]));
+		for (Map.Entry<String, String[]> entry : map.entrySet()) {
+			String[] vals = entry.getValue();
+			String[] ps = entry.getKey().split(".");
+			System.out.println(entry.getKey());
+			System.out.println(ps.length);
+			if(ps.length > 0) {
+				JsonObject jobj = setObjectByPath(json,ps);
+				if(vals != null && vals.length == 1) {
+					jobj.addProperty(ps[ps.length - 1], vals[0]);
+				} else {
+					JsonArray ja = new JsonArray();
+					for(String v:vals) {
+						ja.add(v);
 					}
+					jobj.add(ps[ps.length - 1], ja);
 				}
 			}
 		}
-		Object[] args = new Object[argNames.size()];
-		//TODO
-		for(int i = 0; i < argNames.size(); i++) {
-			String pName = argNames.get(i);
-			String name = pName.substring(2);
-			String p = pName.substring(0, 2);
-			Class<?> type = nameType.get(name);
-			if(!type.isArray()) {
-				type.getComponentType();
-				
-			} else {
-				
+		Object[] args = new Object[method.getParameterCount()];
+		Class<?>[] types = method.getParameterTypes();
+		if(paramNameArgIndex != null && !paramNameArgIndex.isEmpty()) {
+			for (Map.Entry<Integer,String> entry : paramNameArgIndex.entrySet()) { 
+				Class<?> type = types[entry.getKey()];
+				if (entry.getValue().equals("")) {
+					args[entry.getKey()] = GSON.fromJson(json, type);	
+				} else {
+					args[entry.getKey()] = GSON.fromJson(json.get(entry.getValue()), type);
+				}
 			}
-			if(p.equals("P-")) {
-				String val = req.getParameter(name);
-				
-				req.getParameterValues(name);
-				
-			} else if(p.equals("A-")) {
-				
-			} else if(p.equals("C-")) {
-				
+		}
+		if(paramNameArgIndex != null && !paramNameArgIndex.isEmpty()) {
+			for (Map.Entry<Integer,String> entry : paramNameArgIndex.entrySet()) { 
+				Class<?> type = types[entry.getKey()];
+				if (entry.getValue().equals("")) {
+					args[entry.getKey()] = GSON.fromJson(json, type);
+				} else {
+					args[entry.getKey()] = GSON.fromJson(json.get(entry.getValue()), type);
+				}
+			}
+		}
+		if(attrNameArgIndex != null && !attrNameArgIndex.isEmpty()) {
+			for (Map.Entry<Integer,String> entry : attrNameArgIndex.entrySet()) {
+				args[entry.getKey()] = req.getAttribute(entry.getValue());
+			}
+		}
+		if(reqIndex != null && !reqIndex.isEmpty()) {
+			for(Integer i:reqIndex) {
+				args[i] = req;
+			}
+		}
+		if(respIndex != null && !respIndex.isEmpty()) {
+			for(Integer i:respIndex) {
+				args[i] = resp;
 			}
 		}
 		return args;
 	}
 	
-	private static void setObjectByPath(JsonObject json,String path,Object obj) {
-		String[] ps = path.split(".");
+	private static JsonObject setObjectByPath(JsonObject json,String[] ps) {
 		JsonObject jobj = json;
-		for(String p:ps) {
+		for(int i = 0; i < ps.length -1 ; i++) {
+			String p = ps[i];
 			jobj = jobj.getAsJsonObject(p);
 			if(jobj == null) {
 				jobj = new JsonObject();
 				jobj.add(p, jobj);
 			}
 		}
-	}
-	private static JsonObject getObjectByPath(JsonObject json,String path) {
-		String[] ps = path.split(".");
-		JsonObject jobj = json;
-		for(String p:ps) {
-			jobj = jobj.getAsJsonObject(p);
-			if(jobj == null) {
-				return null;
-			}
-		}
 		return jobj;
 	}
-	
-	public Object invoke(HttpServletRequest req) {
-    	Map<String,Object> result = new HashMap<>();
-    	resoveReqParams(result, req);
-    	Object[] args = new Object[method.getParameterCount()];
+	public Object invoke(HttpServletRequest req, HttpServletResponse resp) {
+    	Object[] args = resoveReqParams(req, resp);
 		Object obj = null;
 		try {
 			obj = method.invoke(bean, args);
@@ -199,5 +205,4 @@ public class ApiPair {
 		}
 		return obj;
 	}
-	
 }

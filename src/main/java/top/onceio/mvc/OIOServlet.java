@@ -6,8 +6,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
@@ -58,25 +56,10 @@ public class OIOServlet extends HttpServlet {
         }
         
     }
-	static <T> T readParam(HttpServletRequest req, Class<T> clazz) throws InstantiationException, IllegalAccessException, IOException{
-		T result = clazz.newInstance();
-		req.getParameterMap();
-		if(req.getContentLength() > 0) {
-			ServletInputStream sis = req.getInputStream();
-			Reader reader = new InputStreamReader(sis);
-			GSON.fromJson(reader, clazz);
-		}
-		return result;
-	}
 	
 	void writeRepsone(HttpServletResponse resp, Object obj) throws IOException {
-		if(obj != null) {
-			Appendable writer = resp.getWriter();
-			GSON.toJson(obj, writer);
-		}
+
 	}
-	
-	
 	
 	@Override
 	public void destroy() {
@@ -94,19 +77,15 @@ public class OIOServlet extends HttpServlet {
         }
         req = (HttpServletRequest) request;
         resp = (HttpServletResponse) response;
-		PrintWriter pw = resp.getWriter();
-		Date now = new Date();
-        pw.printf("OnceIO %s\n", now.toString());
-        pw.printf("method %s\n", req.getMethod());
-        pw.printf("URI: %s\n", req.getRequestURI());
-        pw.printf("Param: %s\n", GSON.toJson(req.getParameterMap()));
         ApiPair apiPair = BeansEden.get().search(ApiMethod.valueOf(req.getMethod()), req.getRequestURI());
         if(apiPair != null) {
-        	pw.printf("api:%s, ApiClass:%s\n",apiPair.getApi(),apiPair.getBean().getClass());
-        	Object obj = apiPair.invoke(req);
-        	pw.printf("param : %s", OUtils.toJSON(obj));
+        	Object obj = apiPair.invoke(req, resp);
+    		if(obj != null) {
+    			PrintWriter writer = resp.getWriter();
+    			GSON.toJson(obj, writer);
+    			writer.close();
+    		}
         }
-        pw.close();
 
 	}
 }
