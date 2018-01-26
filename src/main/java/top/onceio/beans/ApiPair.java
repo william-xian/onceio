@@ -197,14 +197,9 @@ public class ApiPair {
 		}
 		return jobj;
 	}
-	public Object invoke(HttpServletRequest req, HttpServletResponse resp) {
+	public Object invoke(HttpServletRequest req, HttpServletResponse resp) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     	Object[] args = resoveReqParams(req, resp);
-		Object obj = null;
-		try {
-			obj = method.invoke(bean, args);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			e.printStackTrace();
-		}
+		Object obj = method.invoke(bean, args);
 		return obj;
 	}
 }

@@ -3,6 +3,8 @@ package top.onceio.mvc;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -18,6 +20,8 @@ import top.onceio.annotation.BeansIn;
 import top.onceio.beans.ApiMethod;
 import top.onceio.beans.ApiPair;
 import top.onceio.beans.BeansEden;
+import top.onceio.exception.Failed;
+import top.onceio.util.OUtils;
 
 @WebServlet(value="/",asyncSupported = false)
 public class OIODispatcherServlet extends HttpServlet {
@@ -70,13 +74,26 @@ public class OIODispatcherServlet extends HttpServlet {
         resp = (HttpServletResponse) response;
         ApiPair apiPair = BeansEden.get().search(ApiMethod.valueOf(req.getMethod()), req.getRequestURI());
         if(apiPair != null) {
-        	Object obj = apiPair.invoke(req, resp);
-    		if(obj != null) {
-    			PrintWriter writer = resp.getWriter();
-    			GSON.toJson(obj, writer);
-    			writer.close();
+			try {
+				Object obj = apiPair.invoke(req, resp);
+				if (obj != null) {
+					PrintWriter writer = resp.getWriter();
+					GSON.toJson(obj, writer);
+					writer.close();
+				}
+    		}catch(Exception e) {
+    			if(e instanceof Failed) {
+    				Failed failed = (Failed)e;
+    				Map<String,Object> r = new HashMap<>();
+    				r.put("msg",String.format(failed.getFormat(), failed.getArgs()));
+    				r.put("data", failed.getData());
+    				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, OUtils.toJSON(r));
+    			}else {
+    				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    			}
     		}
+        } else {
+        	resp.sendError(HttpServletResponse.SC_NOT_FOUND, String.format("找不到请求：%s %s", req.getMethod(), req.getRequestURI()));
         }
-
 	}
 }

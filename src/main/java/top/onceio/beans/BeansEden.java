@@ -224,24 +224,26 @@ public class BeansEden {
 		Iterator<Object> beans = nameToBean.values().iterator();
 		while(beans.hasNext()) {
 			Object bean = beans.next();
-			Class<?> clazz = bean.getClass();
-			for(Field field : clazz.getDeclaredFields()) {
-				loadConfig(clazz,bean,field);
-				Using usingAnn = field.getAnnotation(Using.class);
-				if(usingAnn != null) {
-					Class<?> fieldType = field.getType();
-					field.setAccessible(true);
-					Object fieldBean = load(fieldType,usingAnn.value());
-					if(fieldBean != null) {
-						try {
-							field.set(bean, fieldBean);
-						} catch (IllegalArgumentException | IllegalAccessException e) {
-							LOGGER.error(e.getMessage(),e);
+			Class<?> beanClass = bean.getClass();
+			for(Class<?> clazz=beanClass; clazz != Object.class;clazz = clazz.getSuperclass()) {
+				for(Field field : clazz.getDeclaredFields()) {
+					loadConfig(clazz,bean,field);
+					Using usingAnn = field.getAnnotation(Using.class);
+					if(usingAnn != null) {
+						Class<?> fieldType = field.getType();
+						field.setAccessible(true);
+						Object fieldBean = load(fieldType,usingAnn.value());
+						if(fieldBean != null) {
+							try {
+								field.set(bean, fieldBean);
+							} catch (IllegalArgumentException | IllegalAccessException e) {
+								LOGGER.error(e.getMessage(),e);
+							}
+						} else {
+							LOGGER.error(String.format("找不到 %s:%s", fieldType.getName(),usingAnn.value()));
 						}
-					} else {
-						LOGGER.error(String.format("找不到 %s:%s", fieldType.getName(),usingAnn.value()));
+						
 					}
-					
 				}
 			}
 			
