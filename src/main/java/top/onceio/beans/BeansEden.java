@@ -64,10 +64,12 @@ public class BeansEden {
 	}
 	private void loadDefaultProperties() {
 		try {
-			InputStream in = OnceIO.getClassLoader().getResourceAsStream("onceio.properties");
-			
-			prop.load(in);
-			in.close();
+			InputStream in = null ;
+			in = OnceIO.getClassLoader().getResourceAsStream("onceio.properties");
+			if (in != null) {
+				prop.load(in);
+				in.close();
+			}
 		} catch (IOException e) {
 			LOGGER.warn(e.getMessage());
 		}
@@ -77,8 +79,6 @@ public class BeansEden {
 			Definer.class,Def.class,Using.class,
 			Tbl.class,TblView.class);
 	
-	
-
 	private DataSource createDataSource() {
 		String driver = prop.getProperty("onceio.datasource.driver");
 		String url = prop.getProperty("onceio.datasource.url");
@@ -198,24 +198,23 @@ public class BeansEden {
 				Object bean = defClazz.newInstance();
 				Def defAnn = defClazz.getAnnotation(Def.class);
 				String beanName = defAnn.value();
-				System.out.println(">>>" + defClazz.getName());
 				store(defClazz,beanName, bean);
-			} catch (InstantiationException|IllegalAccessException e) {
+			} catch (Exception e) {
 				LOGGER.error(e.getMessage(),e);
 			}
 		}
 	}
 	private void loadApiAutoApi() {
-		Set<Class<?>> definers = scanner.getClasses(Api.class,AutoApi.class);
-		for(Class<?> defClazz:definers) {
-			if(LOGGER.isDebugEnabled()) {
-				LOGGER.debug("load Api: "+defClazz.getName());
+		Set<Class<?>> definers = scanner.getClasses(Api.class, AutoApi.class);
+		for (Class<?> defClazz : definers) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("load Api: " + defClazz.getName());
 			}
 			try {
 				Object bean = defClazz.newInstance();
-				store(defClazz,null, bean);
-			} catch (InstantiationException|IllegalAccessException e) {
-				LOGGER.error(e.getMessage(),e);
+				store(defClazz, null, bean);
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
 			}
 		}
 	}
@@ -242,7 +241,6 @@ public class BeansEden {
 						} else {
 							LOGGER.error(String.format("找不到 %s:%s", fieldType.getName(),usingAnn.value()));
 						}
-						
 					}
 				}
 			}
@@ -377,11 +375,11 @@ public class BeansEden {
 	}
 	
 	protected <T> void store(Class<T> clazz,String beanName,Object bean) {
-		if(beanName  == null) {
+		if(beanName == null) {
 			beanName = "";
 		}
 		OAssert.err(bean != null,"%s:%s can not be null!", clazz.getName(),beanName);
-		nameToBean.put(clazz.getName()+":" + beanName,bean);
+		nameToBean.put(clazz.getName() + ":" + beanName, bean);
 	}
 	
 	public <T> T load(Class<T> clazz) {
@@ -390,7 +388,7 @@ public class BeansEden {
 
 	@SuppressWarnings("unchecked")
 	public <T> T load(Class<T> clazz, String beanName) {
-		if(beanName  == null) {
+		if(beanName == null) {
 			beanName = "";
 		}
 		Object v = nameToBean.get(clazz.getName()+":" + beanName);

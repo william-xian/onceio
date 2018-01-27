@@ -18,7 +18,7 @@ public abstract class FuncTpl<E> extends Tpl{
 	public FuncTpl(Class<E> tplClass) {
 		FuncSetterProxy cglibProxy = new FuncSetterProxy();
         Enhancer enhancer = new Enhancer();  
-        enhancer.setSuperclass(tplClass);  
+        enhancer.setSuperclass(tplClass);
         enhancer.setCallback(cglibProxy);  
         tpl = (E)enhancer.create(); 
 	}

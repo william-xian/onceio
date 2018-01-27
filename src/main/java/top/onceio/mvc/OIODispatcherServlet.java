@@ -21,7 +21,6 @@ import top.onceio.beans.ApiMethod;
 import top.onceio.beans.ApiPair;
 import top.onceio.beans.BeansEden;
 import top.onceio.exception.Failed;
-import top.onceio.util.OUtils;
 
 @WebServlet(value="/",asyncSupported = false)
 public class OIODispatcherServlet extends HttpServlet {
@@ -80,15 +79,22 @@ public class OIODispatcherServlet extends HttpServlet {
 					PrintWriter writer = resp.getWriter();
 					GSON.toJson(obj, writer);
 					writer.close();
+				} else {
+					PrintWriter writer = resp.getWriter();
+					writer.println("ok");
+					writer.close();
 				}
-    		}catch(Exception e) {
+			} catch (Exception e) {
     			if(e instanceof Failed) {
     				Failed failed = (Failed)e;
     				Map<String,Object> r = new HashMap<>();
     				r.put("msg",String.format(failed.getFormat(), failed.getArgs()));
     				r.put("data", failed.getData());
-    				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, OUtils.toJSON(r));
+					PrintWriter writer = resp.getWriter();
+					GSON.toJson(r, writer);
+					writer.close();
     			}else {
+        			e.printStackTrace();
     				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     			}
     		}

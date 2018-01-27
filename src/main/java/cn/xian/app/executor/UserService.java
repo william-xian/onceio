@@ -1,18 +1,25 @@
 package cn.xian.app.executor;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import cn.xian.app.entity.UserChief;
 import cn.xian.app.provider.UserProvider;
+import cn.xian.app.provider.WalletProvider;
 import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.Page;
 import top.onceio.exception.Failed;
 import top.onceio.mvc.annocations.Def;
 import top.onceio.mvc.annocations.Using;
+import top.onceio.trans.annotation.Transactional;
 
 @Def
 public class UserService {
-	
+
 	@Using
 	private UserProvider userProvider;
+	@Using
+	private WalletProvider walletProvider;
 	
 	public boolean signup(String account,String passwd) {
 		UserChief uc = userProvider.fetchByName(account);
@@ -32,5 +39,15 @@ public class UserService {
 		userProvider.insert(entity);
 		Page<UserChief> ucs = userProvider.find(new Cnd<UserChief>(UserChief.class));
 		return ucs;
+	}
+	@Transactional
+	public Map<String,Object> transfer(Long from,Long to,Integer v) {
+		Map<String,Object> result = new HashMap<>();
+		result.put("before-a", walletProvider.get(from));
+		result.put("before-b", walletProvider.get(to));
+		walletProvider.transfer(from, to, v);
+		result.put("after-a", walletProvider.get(from));
+		result.put("after-b", walletProvider.get(to));
+		return result;
 	}
 }

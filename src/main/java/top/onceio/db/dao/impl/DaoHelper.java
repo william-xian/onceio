@@ -244,8 +244,8 @@ public class DaoHelper implements DDLDao,TransDao{
 		return jdbcHelper.call(sql, args);
 	}
 
-	public void beginTransaction(int level) {
-		jdbcHelper.beginTransaction(level);
+	public void beginTransaction(int level,boolean readOnly) {
+		jdbcHelper.beginTransaction(level,readOnly);
 	}
 	public Savepoint setSavepoint() {
 		return jdbcHelper.setSavepoint();

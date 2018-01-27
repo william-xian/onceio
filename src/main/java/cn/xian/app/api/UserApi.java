@@ -1,5 +1,7 @@
 package cn.xian.app.api;
 
+import java.util.Map;
+
 import cn.xian.app.entity.UserChief;
 import cn.xian.app.executor.UserService;
 import top.onceio.db.dao.Page;
@@ -21,5 +23,9 @@ public class UserApi {
 	@Api("/signin/{username}")
 	public Page<UserChief> signin(@Param("username") String username, @Param("passwd") String passwd) {
 		return userService.signin(username, passwd);
+	}	
+	@Api("/transfer")
+	public Map<String,Object> transfer(@Param("from") Long from, @Param("to") Long to,@Param("v")Integer v) {
+		return userService.transfer(from, to, v);
 	}
 }

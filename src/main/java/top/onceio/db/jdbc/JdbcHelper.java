@@ -56,11 +56,12 @@ public class JdbcHelper {
      * @see DatabaseMetaData#supportsTransactionIsolationLevel
      * @see #getTransactionIsolation
      */
-	public void beginTransaction(int level) {
+	public void beginTransaction(int level,boolean readOnly) {
 		try {
 			Connection conn = trans.get();
 			if(conn == null) {
 				conn = dataSource.getConnection();
+				conn.setReadOnly(readOnly);
 				conn.setAutoCommit(false);
 				conn.setTransactionIsolation(level);
 				trans.set(conn);
