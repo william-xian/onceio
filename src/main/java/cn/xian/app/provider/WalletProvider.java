@@ -23,7 +23,7 @@ public class WalletProvider extends DaoProvider<Wallet> {
 		addtpl.set().setId(to);
 		cnt = updateByTpl(addtpl);
 		if(cnt != 1) {
-			Failed.throwMsg("Wallet Id：%d is not found", from);
+			Failed.throwMsg("Wallet Id: %d is not found", from);
 		}
 	}
 }

@@ -3,6 +3,7 @@ package top.onceio.mvc;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,24 +80,21 @@ public class OIODispatcherServlet extends HttpServlet {
 					PrintWriter writer = resp.getWriter();
 					GSON.toJson(obj, writer);
 					writer.close();
-				} else {
-					PrintWriter writer = resp.getWriter();
-					writer.println("ok");
-					writer.close();
 				}
-			} catch (Exception e) {
-    			if(e instanceof Failed) {
-    				Failed failed = (Failed)e;
-    				Map<String,Object> r = new HashMap<>();
-    				r.put("msg",String.format(failed.getFormat(), failed.getArgs()));
-    				r.put("data", failed.getData());
+			} catch (InvocationTargetException e) {
+				Throwable target = e.getTargetException();
+				if(target instanceof Failed) {
+					Failed failed = (Failed)target;
+					Map<String, Object> r = new HashMap<>();
+					r.put("msg", String.format(failed.getFormat(), failed.getArgs()));
+					r.put("data", failed.getData());
 					PrintWriter writer = resp.getWriter();
 					GSON.toJson(r, writer);
 					writer.close();
-    			}else {
-        			e.printStackTrace();
-    				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-    			}
+				}
+    		} catch (IllegalAccessException | IllegalArgumentException e) {
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+				e.printStackTrace();
     		}
         } else {
         	resp.sendError(HttpServletResponse.SC_NOT_FOUND, String.format("找不到请求：%s %s", req.getMethod(), req.getRequestURI()));
