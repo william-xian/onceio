@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,7 +22,6 @@ import top.onceio.beans.ApiPair;
 import top.onceio.beans.BeansEden;
 import top.onceio.exception.Failed;
 
-@WebServlet(value="/",asyncSupported = false)
 public class OIODispatcherServlet extends HttpServlet {
 
     /**
@@ -58,13 +56,12 @@ public class OIODispatcherServlet extends HttpServlet {
 	
 	@Override
 	public void destroy() {
-	    System.out.println("servlet销毁！");
 	    super.destroy();
 	}
 
 	@Override
 	public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
-        HttpServletRequest  req;
+		HttpServletRequest  req;
         HttpServletResponse resp;
         if (!(request instanceof HttpServletRequest &&
         		response instanceof HttpServletResponse)) {
@@ -72,9 +69,10 @@ public class OIODispatcherServlet extends HttpServlet {
         }
         req = (HttpServletRequest) request;
         resp = (HttpServletResponse) response;
-        request.setCharacterEncoding("utf-8");
-        response.setCharacterEncoding("utf-8");
-        ApiPair apiPair = BeansEden.get().search(ApiMethod.valueOf(req.getMethod()), req.getRequestURI());
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        String localUri = req.getRequestURI().substring(req.getContextPath().length());
+        ApiPair apiPair = BeansEden.get().search(ApiMethod.valueOf(req.getMethod()), localUri);
         if(apiPair != null) {
 			try {
 				Object obj = apiPair.invoke(req, resp);

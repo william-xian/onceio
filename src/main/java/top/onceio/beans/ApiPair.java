@@ -120,9 +120,9 @@ public class ApiPair {
 		if(json == null) {
 			json = new JsonObject();
 		}
-		String uri = req.getRequestURI();
+		String uri = req.getRequestURI().substring(req.getContextPath().length());
 		try {
-			uri = URLDecoder.decode(req.getRequestURI(),"UTF-8");
+			uri = URLDecoder.decode(uri, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
