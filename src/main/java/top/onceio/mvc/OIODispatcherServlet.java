@@ -72,6 +72,8 @@ public class OIODispatcherServlet extends HttpServlet {
         }
         req = (HttpServletRequest) request;
         resp = (HttpServletResponse) response;
+        request.setCharacterEncoding("utf-8");
+        response.setCharacterEncoding("utf-8");
         ApiPair apiPair = BeansEden.get().search(ApiMethod.valueOf(req.getMethod()), req.getRequestURI());
         if(apiPair != null) {
 			try {

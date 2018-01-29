@@ -1,9 +1,11 @@
 package top.onceio.beans;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,7 +120,13 @@ public class ApiPair {
 		if(json == null) {
 			json = new JsonObject();
 		}
-		String[] uris = req.getRequestURI().split("/");
+		String uri = req.getRequestURI();
+		try {
+			uri = URLDecoder.decode(req.getRequestURI(),"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		String[] uris = uri.split("/");
 		for (String name : nameVarIndex.keySet()) {
 			Integer i = nameVarIndex.get(name);
 			String v = uris[i];
