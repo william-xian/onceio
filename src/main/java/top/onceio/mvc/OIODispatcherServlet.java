@@ -71,6 +71,7 @@ public class OIODispatcherServlet extends HttpServlet {
         resp = (HttpServletResponse) response;
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+        resp.setHeader("Content-type", "application/json;charset=UTF-8");
         String localUri = req.getRequestURI().substring(req.getContextPath().length());
         ApiPair apiPair = BeansEden.get().search(ApiMethod.valueOf(req.getMethod()), localUri);
         if(apiPair != null) {
@@ -97,7 +98,7 @@ public class OIODispatcherServlet extends HttpServlet {
 				e.printStackTrace();
     		}
         } else {
-        	resp.sendError(HttpServletResponse.SC_NOT_FOUND, String.format("找不到请求：%s %s", req.getMethod(), req.getRequestURI()));
+        	resp.sendError(HttpServletResponse.SC_NOT_FOUND, String.format("Not found: %s %s", req.getMethod(), req.getRequestURI()));
         }
 	}
 }
