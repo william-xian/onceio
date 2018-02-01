@@ -116,7 +116,6 @@ public class BeansEden {
 			public Long next(Class<?> entityClass) {
 				return IDGenerator.randomID();
 			}
-			
 		};
 	}
 	
@@ -220,7 +219,7 @@ public class BeansEden {
 	}
 
 	private void linkBeans() {
-		Iterator<Object> beans = nameToBean.values().iterator();
+		Iterator<Object> beans = new HashSet<>(nameToBean.values()).iterator();
 		while(beans.hasNext()) {
 			Object bean = beans.next();
 			Class<?> beanClass = bean.getClass();
@@ -244,7 +243,6 @@ public class BeansEden {
 					}
 				}
 			}
-			
 		}
 	}
 	
@@ -331,7 +329,6 @@ public class BeansEden {
 						if(methodApi != null && !ignoreMethods.contains(method.getName()+method.getParameterTypes().hashCode())) {
 							resoveAutoApi(clazz,autoApi,methodApi,bean,method,null);	
 						}
-						
 					}
 				}
 			}
@@ -378,8 +375,11 @@ public class BeansEden {
 		if(beanName == null) {
 			beanName = "";
 		}
-		OAssert.err(bean != null,"%s:%s can not be null!", clazz.getName(),beanName);
+		OAssert.err(bean != null, "%s:%s can not be null!", clazz.getName(), beanName);
 		nameToBean.put(clazz.getName() + ":" + beanName, bean);
+		for (Class<?> iter : clazz.getInterfaces()) {
+			nameToBean.put(iter.getName() + ":" + beanName, bean);
+		}
 	}
 	
 	public <T> T load(Class<T> clazz) {
