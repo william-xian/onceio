@@ -15,12 +15,16 @@ public class TransactionProxy implements MethodInterceptor {
 		Transactional trans = method.getAnnotation(Transactional.class);
 		if (trans != null) {
 			JdbcHelper jdbcHelper = BeansEden.get().load(JdbcHelper.class);
+			boolean created = jdbcHelper.beginTransaction(trans.isolation(),trans.readOnly());
 			try {
-				jdbcHelper.beginTransaction(trans.isolation(),trans.readOnly());
 				result = proxy.invokeSuper(obj, args);
-				jdbcHelper.commit();
+				if(created) {
+					jdbcHelper.commit();
+				}
 			} catch (Exception e) {
-				jdbcHelper.rollback();
+				if(created) {
+					jdbcHelper.rollback();	
+				}
 				throw e;
 			}
 		} else {

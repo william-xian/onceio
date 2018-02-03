@@ -55,11 +55,14 @@ public class JdbcHelper {
      *            constants
      * @see DatabaseMetaData#supportsTransactionIsolationLevel
      * @see #getTransactionIsolation
+     * @return isCreated
      */
-	public void beginTransaction(int level,boolean readOnly) {
+	public boolean beginTransaction(int level,boolean readOnly) {
+		boolean created = false;
 		try {
 			Connection conn = trans.get();
 			if(conn == null) {
+				created = true;
 				conn = dataSource.getConnection();
 				conn.setReadOnly(readOnly);
 				conn.setAutoCommit(false);
@@ -73,6 +76,7 @@ public class JdbcHelper {
 		} catch (SQLException e) {
 			Failed.throwError(e.getMessage());
 		}
+		return created;
 	}
 	public Savepoint setSavepoint() {
 		Savepoint sp = null;
@@ -101,6 +105,7 @@ public class JdbcHelper {
 		if(conn != null) {
 			try {
 				conn.rollback();
+				trans.remove();
 			} catch (SQLException e) {
 				Failed.throwError(e.getMessage());
 			}
