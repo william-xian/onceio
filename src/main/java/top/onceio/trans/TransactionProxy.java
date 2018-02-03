@@ -17,13 +17,18 @@ public class TransactionProxy implements MethodInterceptor {
 			JdbcHelper jdbcHelper = BeansEden.get().load(JdbcHelper.class);
 			try {
 				jdbcHelper.beginTransaction(trans.isolation(),trans.readOnly());
-				result = method.invoke(obj, args);
+				result = proxy.invokeSuper(obj, args);
 				jdbcHelper.commit();
 			} catch (Exception e) {
 				jdbcHelper.rollback();
+				throw e;
 			}
 		} else {
-			result = method.invoke(obj, args);	
+			try {
+				result = proxy.invokeSuper(obj, args);	
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return result;
 	}

@@ -11,7 +11,6 @@ import top.onceio.db.dao.Page;
 import top.onceio.exception.Failed;
 import top.onceio.mvc.annocations.Def;
 import top.onceio.mvc.annocations.Using;
-import top.onceio.trans.annotation.Transactional;
 
 @Def
 public class UserService {
@@ -40,7 +39,7 @@ public class UserService {
 		Page<UserChief> ucs = userProvider.find(new Cnd<UserChief>(UserChief.class));
 		return ucs;
 	}
-	@Transactional
+	
 	public Map<String,Object> transfer(Long from,Long to,Integer v) {
 		Map<String,Object> result = new HashMap<>();
 		result.put("before-a", walletProvider.get(from));

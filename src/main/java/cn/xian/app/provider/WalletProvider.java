@@ -5,11 +5,12 @@ import top.onceio.db.dao.DaoProvider;
 import top.onceio.db.dao.tpl.UpdateTpl;
 import top.onceio.exception.Failed;
 import top.onceio.mvc.annocations.AutoApi;
+import top.onceio.trans.annotation.Transactional;
 
 @AutoApi(Wallet.class)
 public class WalletProvider extends DaoProvider<Wallet> {
 	
-	//@Transactional
+	@Transactional
 	public void transfer(Long from,Long to,Integer v) {
 		UpdateTpl<Wallet> subtpl = new UpdateTpl<>(Wallet.class);
 		subtpl.sub().setBalance(v);

@@ -1,6 +1,5 @@
 package top.onceio.db.dao;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.function.Consumer;
@@ -13,6 +12,7 @@ import top.onceio.db.tbl.OEntity;
 import top.onceio.mvc.annocations.Api;
 import top.onceio.mvc.annocations.Param;
 import top.onceio.mvc.annocations.Using;
+import top.onceio.util.OReflectUtil;
 
 public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 	@Using
@@ -22,11 +22,8 @@ public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 	
 	@SuppressWarnings("unchecked")
 	public DaoProvider() {
-		Type type = this.getClass().getGenericSuperclass();
-		if(type instanceof ParameterizedType) {
-			Type[] tps = ((ParameterizedType)type).getActualTypeArguments();
-			tbl = (Class<T>) tps[0];
-		}
+		Type t = DaoProvider.class.getTypeParameters()[0];
+		tbl = (Class<T>)OReflectUtil.searchGenType(DaoProvider.class, this.getClass(), t);
 	}
 	
 	@Api(method={ApiMethod.GET,ApiMethod.POST})

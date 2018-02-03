@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -20,6 +21,7 @@ import org.apache.log4j.Logger;
 
 import com.alibaba.druid.pool.DruidDataSource;
 
+import net.sf.cglib.proxy.Enhancer;
 import top.onceio.OnceIO;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
@@ -36,6 +38,7 @@ import top.onceio.mvc.annocations.Definer;
 import top.onceio.mvc.annocations.OnCreate;
 import top.onceio.mvc.annocations.OnDestroy;
 import top.onceio.mvc.annocations.Using;
+import top.onceio.trans.TransactionProxy;
 import top.onceio.util.AnnotationScanner;
 import top.onceio.util.IDGenerator;
 import top.onceio.util.OAssert;
@@ -118,11 +121,14 @@ public class BeansEden {
 			}
 		};
 	}
-	
-	private DaoHelper createDaoHelper(DataSource ds,IdGenerator idGenerator,List<Class<? extends OEntity>> entities) {
-		DaoHelper daoHelper = new DaoHelper();
+
+	private JdbcHelper createJdbcHelper(DataSource ds,IdGenerator idGenerator,List<Class<? extends OEntity>> entities) {
 		JdbcHelper jdbcHelper = new JdbcHelper();
 		jdbcHelper.setDataSource(ds);
+		return jdbcHelper;
+	}
+	private DaoHelper createDaoHelper(JdbcHelper jdbcHelper,IdGenerator idGenerator,List<Class<? extends OEntity>> entities) {
+		DaoHelper daoHelper = new DaoHelper();
 		daoHelper.init(jdbcHelper, idGenerator, entities);
 		return daoHelper;
 	}
@@ -194,7 +200,13 @@ public class BeansEden {
 		Set<Class<?>> definers = scanner.getClasses(Def.class);
 		for(Class<?> defClazz:definers) {
 			try {
-				Object bean = defClazz.newInstance();
+				//Object bean = defClazz.newInstance();
+				TransactionProxy cglibProxy = new TransactionProxy();
+		        Enhancer enhancer = new Enhancer();  
+		        enhancer.setSuperclass(defClazz);
+		        enhancer.setCallback(cglibProxy);
+		        Object bean = enhancer.create();
+		        
 				Def defAnn = defClazz.getAnnotation(Def.class);
 				String beanName = defAnn.value();
 				store(defClazz,beanName, bean);
@@ -210,7 +222,13 @@ public class BeansEden {
 				LOGGER.debug("load Api: " + defClazz.getName());
 			}
 			try {
-				Object bean = defClazz.newInstance();
+				//Object bean = defClazz.newInstance();
+				TransactionProxy cglibProxy = new TransactionProxy();
+		        Enhancer enhancer = new Enhancer();  
+		        enhancer.setSuperclass(defClazz);
+		        enhancer.setCallback(cglibProxy);
+		        Object bean = enhancer.create();
+		        
 				store(defClazz, null, bean);
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
@@ -223,7 +241,11 @@ public class BeansEden {
 		while(beans.hasNext()) {
 			Object bean = beans.next();
 			Class<?> beanClass = bean.getClass();
+			List<Class<?>> classes = new ArrayList<>();
 			for(Class<?> clazz=beanClass; clazz != Object.class;clazz = clazz.getSuperclass()) {
+				classes.add(0, clazz);
+			}
+			for (Class<?> clazz : classes) {
 				for(Field field : clazz.getDeclaredFields()) {
 					loadConfig(clazz,bean,field);
 					Using usingAnn = field.getAnnotation(Using.class);
@@ -258,7 +280,6 @@ public class BeansEden {
 			} else {
 				LOGGER.error(String.format("初始化函数%s,不应该有参数", method.getName()));
 			}
-			
 		}
 	}
 
@@ -269,7 +290,6 @@ public class BeansEden {
 			} else {
 				LOGGER.error(String.format("初始化函数%s,不应该有参数", method.getName()));
 			}
-			
 		}
 	}
 	
@@ -298,10 +318,13 @@ public class BeansEden {
 	}
 	
 	private void resoveBeanMethod() {
-		Iterator<Object> beans = nameToBean.values().iterator();
+		Iterator<Object> beans = new HashSet<>(nameToBean.values()).iterator();
 		while(beans.hasNext()) {
 			Object bean = beans.next();
 			Class<?> clazz = bean.getClass();
+			if(clazz.getName().contains("$$EnhancerByCGLIB$$")) {
+				clazz = clazz.getSuperclass();
+			}
 			Api fatherApi = clazz.getAnnotation(Api.class);
 			AutoApi autoApi = clazz.getAnnotation(AutoApi.class);
 			Set<String> ignoreMethods = new HashSet<>();
@@ -355,10 +378,15 @@ public class BeansEden {
 			idGenerator = createIdGenerator();
 			store(IdGenerator.class,null,idGenerator);
 		}
-		
+
+		JdbcHelper jdbcHelper = load(JdbcHelper.class,null);
+		if(jdbcHelper == null) {
+			jdbcHelper = createJdbcHelper(ds,idGenerator,matchTblTblView());
+			store(JdbcHelper.class,null,jdbcHelper);
+		}
 		DaoHelper daoHelper = load(DaoHelper.class,null);
 		if(daoHelper == null) {
-			daoHelper = createDaoHelper(ds,idGenerator,matchTblTblView());
+			daoHelper = createDaoHelper(jdbcHelper,idGenerator,matchTblTblView());
 			store(DaoHelper.class,null,daoHelper);
 		}
 		loadDefined();
@@ -368,7 +396,6 @@ public class BeansEden {
 		linkBeans();
 		
 		resoveBeanMethod();
-		
 	}
 	
 	protected <T> void store(Class<T> clazz,String beanName,Object bean) {
@@ -376,9 +403,11 @@ public class BeansEden {
 			beanName = "";
 		}
 		OAssert.err(bean != null, "%s:%s can not be null!", clazz.getName(), beanName);
+		LOGGER.debug("bean name=" + clazz.getName() + ":" + beanName);
 		nameToBean.put(clazz.getName() + ":" + beanName, bean);
 		for (Class<?> iter : clazz.getInterfaces()) {
 			nameToBean.put(iter.getName() + ":" + beanName, bean);
+			LOGGER.debug("beanName=" + iter.getName() + ":" + beanName);
 		}
 	}
 	

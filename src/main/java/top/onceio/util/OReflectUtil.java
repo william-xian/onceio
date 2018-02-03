@@ -16,6 +16,7 @@ public class OReflectUtil {
 		Integer typeIndex = null;
 		for(Class<?> clazz = entity;!clazz.equals(forefather);clazz=clazz.getSuperclass()) {
 			classes.add(0, clazz);
+			System.out.println("search:"+clazz);
 		}
 		classes.add(0, forefather);
 		Class<?> father = classes.get(0);
@@ -122,28 +123,8 @@ public class OReflectUtil {
 	}
 	
 	public static Class<?> tranBaseType(Type type) {
-		if (type == String.class) {
-			return String.class;
-		}else if (type == Character.class || type == char.class) {
-			return Character.class;
-		}else if (type == Integer.class || type == int.class) {
-			return Integer.class;
-		} else if (type == Long.class || type == long.class) {
-			return Long.class;
-		}else if (type == Boolean.class || type == boolean.class) {
-			return Boolean.class;
-		}else if (type == Byte.class || type == byte.class) {
-			return Byte.class;
-		}else if (type == Short.class || type == short.class) {
-			return Short.class;
-		}else if (type == Float.class || type == float.class) {
-			return Float.class;
-		}else if (type == Double.class || type == double.class) {
-			return Double.class;
-		}else if (type == BigDecimal.class) {
-			return BigDecimal.class;
-		}else if (type == Date.class) {
-			return Date.class;
+		if(type instanceof Class) {
+			return (Class<?>)type;
 		}
 		return null;
 	}
