@@ -42,7 +42,7 @@ public class AnnotationScanner {
 		}, packages);
     }
     
-    private void putClass(Class<?> annotation,Class<?> clazz) {
+    public void putClass(Class<?> annotation,Class<?> clazz) {
 		Set<Class<?>> clazzList = classifiedAnns.get(annotation);
 		if(clazzList == null) {
 			clazzList = new HashSet<>();

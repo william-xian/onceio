@@ -23,14 +23,20 @@ import com.alibaba.druid.pool.DruidDataSource;
 
 import net.sf.cglib.proxy.Enhancer;
 import top.onceio.OnceIO;
+import top.onceio.annotation.I18nCfg;
+import top.onceio.annotation.I18nCfgBrief;
+import top.onceio.annotation.I18nMsg;
 import top.onceio.aop.TransactionProxy;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
+import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.DaoProvider;
 import top.onceio.db.dao.IdGenerator;
 import top.onceio.db.dao.impl.DaoHelper;
 import top.onceio.db.jdbc.JdbcHelper;
 import top.onceio.db.tbl.OEntity;
+import top.onceio.db.tbl.OI18n;
+import top.onceio.exception.Failed;
 import top.onceio.mvc.annocations.Api;
 import top.onceio.mvc.annocations.AutoApi;
 import top.onceio.mvc.annocations.Config;
@@ -43,6 +49,7 @@ import top.onceio.util.AnnotationScanner;
 import top.onceio.util.IDGenerator;
 import top.onceio.util.OAssert;
 import top.onceio.util.OReflectUtil;
+import top.onceio.util.OUtils;
 
 public class BeansEden {
 	private final static Logger LOGGER = Logger.getLogger(BeansEden.class);
@@ -79,7 +86,7 @@ public class BeansEden {
 	
 	private AnnotationScanner scanner = new AnnotationScanner(Api.class,AutoApi.class,
 			Definer.class,Def.class,Using.class,
-			Tbl.class,TblView.class);
+			Tbl.class,TblView.class,I18nMsg.class,I18nCfg.class);
 	
 	private DataSource createDataSource() {
 		String driver = prop.getProperty("onceio.datasource.driver");
@@ -355,6 +362,9 @@ public class BeansEden {
 		loadDefaultProperties();
 		nameToBean.clear();
 		scanner.scanPackages(packages);
+		
+		scanner.putClass(AutoApi.class, OI18nProvider.class);
+		
 		loadDefiner();
 		DataSource ds = load(DataSource.class,null);
 		if(ds == null) {
@@ -383,6 +393,9 @@ public class BeansEden {
 		linkBeans();
 		
 		resoveBeanMethod();
+		
+		init();
+		
 	}
 	
 	protected <T> void store(Class<T> clazz,String beanName,Object bean) {
@@ -438,6 +451,88 @@ public class BeansEden {
 			LOGGER.error(String.format("找不到Bean对象：  %s:%s", clazz.getName(), beanName));
 		}
 	}
+	
+	public void init() {
+		annlysisI18nMsg();
+		annlysisConst();
+	}
+	
+    private void annlysisI18nMsg(){
+    	OI18nProvider dao = this.load(OI18nProvider.class);
+    	Set<Class<?>> classes = scanner.getClasses(I18nMsg.class);
+    	if(classes == null) return;
+    	List<OI18n> i18ns = new ArrayList<>();
+    	for(Class<?>clazz:classes){
+    		I18nMsg group = clazz.getAnnotation(I18nMsg.class);
+    		for(Field field:clazz.getFields()){
+    			field.setAccessible(true);
+    			try {
+					String name = field.get(null).toString();
+					String key ="msg/"+group.value()+"_"+OUtils.encodeMD5(name);
+		        	Cnd<OI18n> cnd = new Cnd<>(OI18n.class);
+		        	cnd.eq().setKey(key);
+		        	OI18n i18n = dao.fetch(null, cnd);
+					if(i18n == null) {
+						i18n = new OI18n();
+						i18n.setKey(key);
+						i18n.setName(name);
+						i18ns.add(i18n);
+					}
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					Failed.throwError(e.getMessage());
+				}
+    		}
+    	}
+		dao.batchInsert(i18ns);
+    }
+
+    private void annlysisConst(){
+    	OI18nProvider dao = this.load(OI18nProvider.class);
+    	Set<Class<?>> classes = scanner.getClasses(I18nCfg.class);
+    	if(classes == null) return;
+    	List<OI18n> i18ns = new ArrayList<>();
+    	for(Class<?>clazz:classes){
+    		I18nCfg group = clazz.getAnnotation(I18nCfg.class);
+    		for(Field field:clazz.getFields()){
+    			field.setAccessible(true);
+    			I18nCfgBrief cons = field.getAnnotation(I18nCfgBrief.class);
+    			try {
+					String fieldname = field.getName();
+					String val = field.get(null).toString();
+					String key = "const/" + group.value()+ "_"+ clazz.getSimpleName() + "_" + fieldname;
+					String name = cons.value();
+		        	Cnd<OI18n> cnd = new Cnd<>(OI18n.class);
+		        	cnd.eq().setKey(key);
+		        	OI18n i18n = dao.fetch(null, cnd);
+					
+					if(i18n == null) {
+						i18n = new OI18n();
+						i18n.setKey(key);
+						i18n.setName(name);
+						i18n.setVal(val);
+						LOGGER.debug("add: " + i18n);
+			        	i18ns.add(i18n);
+					}else {
+						/** The val depend on database */
+						if(!val.equals(i18n.getVal())){
+							i18n.setVal(val);
+							field.set(null, OReflectUtil.strToBaseType(field.getType(), val));
+							LOGGER.debug("reload: " + i18n);
+						}
+						if(!i18n.getName().equals(name) ){
+							i18n.setName(name);
+							dao.insert(i18n);
+							LOGGER.debug("update: " + i18n);
+						}
+					}
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					Failed.throwError(e.getMessage());
+				}
+    		}
+    	}
+		dao.batchInsert(i18ns);
+    }
+	
 	
 	public ApiPair search(ApiMethod apiMethod,String uri) {
 		return apiResover.search(apiMethod,uri);
