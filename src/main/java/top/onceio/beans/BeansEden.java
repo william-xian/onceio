@@ -23,6 +23,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 
 import net.sf.cglib.proxy.Enhancer;
 import top.onceio.OnceIO;
+import top.onceio.aop.TransactionProxy;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
 import top.onceio.db.dao.DaoProvider;
@@ -38,7 +39,6 @@ import top.onceio.mvc.annocations.Definer;
 import top.onceio.mvc.annocations.OnCreate;
 import top.onceio.mvc.annocations.OnDestroy;
 import top.onceio.mvc.annocations.Using;
-import top.onceio.trans.TransactionProxy;
 import top.onceio.util.AnnotationScanner;
 import top.onceio.util.IDGenerator;
 import top.onceio.util.OAssert;
