@@ -24,11 +24,7 @@ public class TransactionProxy implements MethodInterceptor {
 				throw e;
 			}
 		} else {
-			try {
-				result = proxy.invokeSuper(obj, args);	
-			}catch(Exception e) {
-				e.printStackTrace();
-			}
+			result = proxy.invokeSuper(obj, args);
 		}
 		return result;
 	}

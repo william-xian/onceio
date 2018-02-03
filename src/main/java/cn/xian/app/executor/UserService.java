@@ -41,6 +41,7 @@ public class UserService {
 	}
 	
 	public Map<String,Object> transfer(Long from,Long to,Integer v) {
+		System.out.println("-------");
 		Map<String,Object> result = new HashMap<>();
 		result.put("before-a", walletProvider.get(from));
 		result.put("before-b", walletProvider.get(to));

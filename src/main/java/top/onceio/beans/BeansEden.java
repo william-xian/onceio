@@ -48,7 +48,6 @@ public class BeansEden {
 	private final static Logger LOGGER = Logger.getLogger(BeansEden.class);
 	
 	private Map<String,Object> nameToBean = new HashMap<>();
-
 	private ApiResover apiResover = new ApiResover();
 	private Properties prop = new Properties();
 	
@@ -96,7 +95,6 @@ public class BeansEden {
 		ds.setMaxActive(Integer.parseInt(maxActive));
 		return ds;
 	}
-	
 	@SuppressWarnings("unchecked")
 	public List<Class<? extends OEntity>> matchTblTblView() {
 		List<Class<? extends OEntity>> entities = new LinkedList<>();
@@ -112,7 +110,6 @@ public class BeansEden {
 		}
 		return entities;
 	}
-	
 	private IdGenerator createIdGenerator() {
 		return new IdGenerator(){
 			@Override
@@ -121,7 +118,7 @@ public class BeansEden {
 			}
 		};
 	}
-
+	
 	private JdbcHelper createJdbcHelper(DataSource ds,IdGenerator idGenerator,List<Class<? extends OEntity>> entities) {
 		JdbcHelper jdbcHelper = new JdbcHelper();
 		jdbcHelper.setDataSource(ds);
@@ -132,7 +129,6 @@ public class BeansEden {
 		daoHelper.init(jdbcHelper, idGenerator, entities);
 		return daoHelper;
 	}
-	
 	private void loadConfig(Class<?> clazz,Object bean,Field field) {
 		Config cnfAnn = field.getAnnotation(Config.class);
 		if(cnfAnn != null) {
@@ -140,7 +136,6 @@ public class BeansEden {
 			String  val = prop.getProperty(cnfAnn.value());
 			if(val != null) {
 				try {
-
 					if(OReflectUtil.isBaseType(fieldType)) {
 						field.set(bean, OReflectUtil.strToBaseType(fieldType, val));
 					}else {
@@ -152,7 +147,6 @@ public class BeansEden {
 			} else {
 				LOGGER.error(String.format("找不到属性：%s",cnfAnn.value()));
 			}
-			
 		}
 	}
 	
@@ -200,13 +194,12 @@ public class BeansEden {
 		Set<Class<?>> definers = scanner.getClasses(Def.class);
 		for(Class<?> defClazz:definers) {
 			try {
-				//Object bean = defClazz.newInstance();
 				TransactionProxy cglibProxy = new TransactionProxy();
 		        Enhancer enhancer = new Enhancer();  
 		        enhancer.setSuperclass(defClazz);
-		        enhancer.setCallback(cglibProxy);
-		        Object bean = enhancer.create();
-		        
+		        enhancer.setCallback(cglibProxy); 
+		        Object bean = enhancer.create(); 
+
 				Def defAnn = defClazz.getAnnotation(Def.class);
 				String beanName = defAnn.value();
 				store(defClazz,beanName, bean);
@@ -222,7 +215,6 @@ public class BeansEden {
 				LOGGER.debug("load Api: " + defClazz.getName());
 			}
 			try {
-				//Object bean = defClazz.newInstance();
 				TransactionProxy cglibProxy = new TransactionProxy();
 		        Enhancer enhancer = new Enhancer();  
 		        enhancer.setSuperclass(defClazz);
@@ -336,8 +328,7 @@ public class BeansEden {
 					resoveApi(clazz,fatherApi,methodApi,bean,method);
 				}
 				if(autoApi != null && methodApi != null) {
-					ignoreMethods.add(method.getName()+method.getParameterTypes().hashCode());
-					
+					ignoreMethods.add(method.getName()+method.getParameterTypes().hashCode());		
 					if(!methodApi.value().equals("")) {
 						resoveAutoApi(clazz,autoApi,methodApi,bean,method,methodApi.value());
 					}else {
@@ -364,21 +355,17 @@ public class BeansEden {
 		loadDefaultProperties();
 		nameToBean.clear();
 		scanner.scanPackages(packages);
-		
 		loadDefiner();
-		
 		DataSource ds = load(DataSource.class,null);
 		if(ds == null) {
 			ds = createDataSource();
 			store(DataSource.class,null,ds);
 		}
-		
 		IdGenerator idGenerator = load(IdGenerator.class,null);
 		if(idGenerator == null) {
 			idGenerator = createIdGenerator();
 			store(IdGenerator.class,null,idGenerator);
 		}
-
 		JdbcHelper jdbcHelper = load(JdbcHelper.class,null);
 		if(jdbcHelper == null) {
 			jdbcHelper = createJdbcHelper(ds,idGenerator,matchTblTblView());
