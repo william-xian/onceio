@@ -362,7 +362,7 @@ public class BeansEden {
 		loadDefaultProperties();
 		nameToBean.clear();
 		scanner.scanPackages(packages);
-		
+		scanner.putClass(Tbl.class, OI18n.class);
 		scanner.putClass(AutoApi.class, OI18nProvider.class);
 		
 		loadDefiner();

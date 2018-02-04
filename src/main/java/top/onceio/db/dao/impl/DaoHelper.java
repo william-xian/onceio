@@ -320,7 +320,9 @@ public class DaoHelper implements DDLDao,TransDao{
 		
 	}
 	public <E extends OEntity> int batchInsert(List<E> entities) {
-		OAssert.warnning(entities != null && !entities.isEmpty(),"不可以插入null");
+		if(entities == null || entities.isEmpty()) {
+			return 0;
+		}
 		Class<?> tbl = entities.get(0).getClass();
 		TableMeta tm = tableToTableMeta.get(tbl.getSimpleName().toLowerCase());
 		OAssert.fatal(tm != null,"无法找到表：%s",tbl.getSimpleName());
