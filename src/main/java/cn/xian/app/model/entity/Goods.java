@@ -1,5 +1,6 @@
-package cn.xian.app.entity;
+package cn.xian.app.model.entity;
 
+import cn.xian.app.constant.GoodsGenre;
 import top.onceio.db.annotation.Col;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.tbl.OEntity;
@@ -10,7 +11,7 @@ public class Goods extends OEntity{
 	@Col(size = 32,nullable = true)
 	private String name;
 	
-	@Col(nullable = true)
+	@Col(nullable = true,valRef=GoodsGenre.class)
 	private Integer genre;
 	
 	public String getName() {

@@ -1,6 +1,6 @@
 package cn.xian.app.provider;
 
-import cn.xian.app.entity.Wallet;
+import cn.xian.app.model.entity.Wallet;
 import top.onceio.aop.annotation.Transactional;
 import top.onceio.db.dao.DaoProvider;
 import top.onceio.db.dao.tpl.UpdateTpl;

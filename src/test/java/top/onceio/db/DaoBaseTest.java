@@ -8,15 +8,15 @@ import java.util.Properties;
 
 import com.alibaba.druid.pool.DruidDataSource;
 
-import cn.xian.app.entity.Goods;
-import cn.xian.app.entity.GoodsDesc;
-import cn.xian.app.entity.GoodsOrder;
-import cn.xian.app.entity.GoodsOrderView;
-import cn.xian.app.entity.GoodsShipping;
-import cn.xian.app.entity.UserChief;
-import cn.xian.app.entity.UserFriend;
-import cn.xian.app.entity.UserProfile;
-import cn.xian.app.entity.Wallet;
+import cn.xian.app.model.entity.Goods;
+import cn.xian.app.model.entity.GoodsDesc;
+import cn.xian.app.model.entity.GoodsOrder;
+import cn.xian.app.model.entity.GoodsShipping;
+import cn.xian.app.model.entity.UserChief;
+import cn.xian.app.model.entity.UserFriend;
+import cn.xian.app.model.entity.UserProfile;
+import cn.xian.app.model.entity.Wallet;
+import cn.xian.app.model.view.GoodsOrderView;
 import top.onceio.db.dao.IdGenerator;
 import top.onceio.db.dao.impl.DaoHelper;
 import top.onceio.db.jdbc.JdbcHelper;

@@ -1,4 +1,4 @@
-package cn.xian.app.entity;
+package cn.xian.app.model.entity;
 
 import top.onceio.db.annotation.Col;
 import top.onceio.db.annotation.Tbl;

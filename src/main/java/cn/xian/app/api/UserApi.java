@@ -2,8 +2,8 @@ package cn.xian.app.api;
 
 import java.util.Map;
 
-import cn.xian.app.entity.UserChief;
-import cn.xian.app.executor.UserService;
+import cn.xian.app.logic.UserLogic;
+import cn.xian.app.model.entity.UserChief;
 import top.onceio.db.dao.Page;
 import top.onceio.mvc.annocations.Api;
 import top.onceio.mvc.annocations.Param;
@@ -13,7 +13,7 @@ import top.onceio.mvc.annocations.Using;
 public class UserApi {
 	
 	@Using
-	private UserService userService;
+	private UserLogic userService;
 	
 	@Api("/signup/{username}")
 	public boolean signup(@Param("username") String username, @Param("passwd") String passwd) {

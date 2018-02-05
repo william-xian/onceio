@@ -1,9 +1,9 @@
-package cn.xian.app.executor;
+package cn.xian.app.logic;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import cn.xian.app.entity.UserChief;
+import cn.xian.app.model.entity.UserChief;
 import cn.xian.app.provider.UserProvider;
 import cn.xian.app.provider.WalletProvider;
 import top.onceio.db.dao.Cnd;
@@ -13,7 +13,7 @@ import top.onceio.mvc.annocations.Def;
 import top.onceio.mvc.annocations.Using;
 
 @Def
-public class UserService {
+public class UserLogic {
 
 	@Using
 	private UserProvider userProvider;

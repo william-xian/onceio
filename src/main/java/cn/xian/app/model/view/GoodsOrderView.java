@@ -1,5 +1,6 @@
-package cn.xian.app.entity;
+package cn.xian.app.model.view;
 
+import cn.xian.app.model.entity.GoodsOrder;
 import top.onceio.db.annotation.Col;
 import top.onceio.db.annotation.TblView;
 

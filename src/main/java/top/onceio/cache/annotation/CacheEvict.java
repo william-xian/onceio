@@ -11,4 +11,7 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface CacheEvict {
 
+	String name() default "";
+	
+	String key() default "";
 }
