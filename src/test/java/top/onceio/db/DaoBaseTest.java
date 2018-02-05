@@ -52,7 +52,6 @@ public class DaoBaseTest {
 			}
 			
 		};
-		DDHoster.upgrade();
 		List<Class<? extends OEntity>> entities = new ArrayList<>();
 		entities.add(UserChief.class);
 		entities.add(UserProfile.class);
