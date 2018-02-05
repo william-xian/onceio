@@ -1,16 +1,19 @@
 package top.onceio.util;
 
-public class Tuple3<A,B,C> {
+public class Tuple3<A, B, C> {
 	public A a;
 	public B b;
 	public C c;
+
 	public Tuple3() {
 	}
+
 	public Tuple3(A a, B b, C c) {
 		this.a = a;
 		this.b = b;
 		this.c = c;
 	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -20,6 +23,7 @@ public class Tuple3<A,B,C> {
 		result = prime * result + ((c == null) ? 0 : c.hashCode());
 		return result;
 	}
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean equals(Object obj) {
@@ -47,5 +51,5 @@ public class Tuple3<A,B,C> {
 			return false;
 		return true;
 	}
-	
+
 }

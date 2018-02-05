@@ -31,37 +31,40 @@ public class OrderTpl<E> extends Tpl {
 	private List<String> order = new ArrayList<>();
 	private String orderMethod = "ASC";
 	private E tpl;
-	
+
 	@SuppressWarnings("unchecked")
 	public OrderTpl(Class<E> tplClass) {
 		OrderSetterProxy cglibProxy = new OrderSetterProxy();
-        Enhancer enhancer = new Enhancer();  
-        enhancer.setSuperclass(tplClass);  
-        enhancer.setCallback(cglibProxy);  
-        tpl = (E)enhancer.create(); 
+		Enhancer enhancer = new Enhancer();
+		enhancer.setSuperclass(tplClass);
+		enhancer.setCallback(cglibProxy);
+		tpl = (E) enhancer.create();
 	}
 
 	public E desc() {
 		orderMethod = "DESC";
 		return tpl;
 	}
+
 	public E asc() {
 		orderMethod = "ASC";
 		return tpl;
 	}
+
 	public String getOrder() {
 		return String.join(",", order);
 	}
-	class OrderSetterProxy implements MethodInterceptor {  
-	    @Override  
-	    public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
-	        if(method.getName().startsWith("set") && args.length == 1) {
-	            if(method.getName().length() > 3) {
-	            	String fieldName = method.getName().substring(3,4).toLowerCase() +method.getName().substring(4);   
-	            	order.add(fieldName + " " + orderMethod);
-	            }
-	        }
-	        return o;  
-	    }  
-	}	
+
+	class OrderSetterProxy implements MethodInterceptor {
+		@Override
+		public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+			if (method.getName().startsWith("set") && args.length == 1) {
+				if (method.getName().length() > 3) {
+					String fieldName = method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4);
+					order.add(fieldName + " " + orderMethod);
+				}
+			}
+			return o;
+		}
+	}
 }

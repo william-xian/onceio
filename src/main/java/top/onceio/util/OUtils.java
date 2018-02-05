@@ -28,41 +28,40 @@ public final class OUtils {
 	public static String randomUUID() {
 		return UUID.randomUUID().toString().replaceAll("-", "");
 	}
-	
 
-	public static String genStub(String e,String s,int cnt) {
+	public static String genStub(String e, String s, int cnt) {
 		StringBuffer sb = new StringBuffer((e.length() + s.length()) * cnt);
-		for(int i=0; i < cnt-1; i++) {
+		for (int i = 0; i < cnt - 1; i++) {
 			sb.append(e);
 			sb.append(s);
 		}
-		if(cnt > 0) {
+		if (cnt > 0) {
 			sb.append(e);
 		}
 		return sb.toString();
 	}
 
-	public static String replaceWord(String str,Map<String,String> tokens) {
-	    String patternString = "(\\b" + String.join("\\b|\\b",tokens.keySet()) + "\\b)"; 
-	    Pattern pattern = Pattern.compile(patternString); 
-	    Matcher matcher = pattern.matcher(str);
-	    //两个方法：appendReplacement, appendTail 
-	    StringBuffer sb = new StringBuffer(); 
-	    while(matcher.find()) { 
-	        matcher.appendReplacement(sb, tokens.get(matcher.group(1))); 
-	    } 
-	    matcher.appendTail(sb);
-	    return sb.toString();
+	public static String replaceWord(String str, Map<String, String> tokens) {
+		String patternString = "(\\b" + String.join("\\b|\\b", tokens.keySet()) + "\\b)";
+		Pattern pattern = Pattern.compile(patternString);
+		Matcher matcher = pattern.matcher(str);
+		// 两个方法：appendReplacement, appendTail
+		StringBuffer sb = new StringBuffer();
+		while (matcher.find()) {
+			matcher.appendReplacement(sb, tokens.get(matcher.group(1)));
+		}
+		matcher.appendTail(sb);
+		return sb.toString();
 	}
-	
+
 	private static final Gson GSON = new GsonBuilder().serializeNulls().create();
-	
+
 	public static String toJSON(Object obj) {
 		return GSON.toJson(obj);
 	}
 
-    public static <T> T createFromJson(String json,Class<T> entityClass) {
-    	return GSON.fromJson(json, entityClass);
-    }
-	
+	public static <T> T createFromJson(String json, Class<T> entityClass) {
+		return GSON.fromJson(json, entityClass);
+	}
+
 }

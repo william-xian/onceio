@@ -10,10 +10,11 @@ import top.onceio.db.tbl.OEntity;
 
 /**
  * 类的所有公共方法都会成为RESTful API
+ * 
  * @author william-xian
  */
 
-@Target({ElementType.TYPE})
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface AutoApi {

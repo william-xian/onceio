@@ -19,57 +19,59 @@ import org.apache.log4j.Logger;
 import top.onceio.exception.Failed;
 
 public class JdbcHelper {
-	
+
 	private static final Logger LOGGER = Logger.getLogger(JdbcHelper.class);
-	
-    private static ThreadLocal<Connection> trans = new ThreadLocal<Connection>();
-	
+
+	private static ThreadLocal<Connection> trans = new ThreadLocal<Connection>();
+
 	private DataSource dataSource;
 
 	public DataSource getDataSource() {
 		return dataSource;
 	}
+
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-	
-    /**
-     * Attempts to change the transaction isolation level for this
-     * <code>Connection</code> object to the one given.
-     * The constants defined in the interface <code>Connection</code>
-     * are the possible transaction isolation levels.
-     * <P>
-     * <B>Note:</B> If this method is called during a transaction, the result
-     * is implementation-defined.
-     *
-     * @param level one of the following <code>Connection</code> constants:
-     *        <code>Connection.TRANSACTION_READ_UNCOMMITTED</code>,
-     *        <code>Connection.TRANSACTION_READ_COMMITTED</code>,
-     *        <code>Connection.TRANSACTION_REPEATABLE_READ</code>, or
-     *        <code>Connection.TRANSACTION_SERIALIZABLE</code>.
-     *        (Note that <code>Connection.TRANSACTION_NONE</code> cannot be used
-     *        because it specifies that transactions are not supported.)
-     * @exception SQLException if a database access error occurs, this
-     * method is called on a closed connection
-     *            or the given parameter is not one of the <code>Connection</code>
-     *            constants
-     * @see DatabaseMetaData#supportsTransactionIsolationLevel
-     * @see #getTransactionIsolation
-     * @return isCreated
-     */
-	public boolean beginTransaction(int level,boolean readOnly) {
+
+	/**
+	 * Attempts to change the transaction isolation level for this
+	 * <code>Connection</code> object to the one given. The constants defined in
+	 * the interface <code>Connection</code> are the possible transaction
+	 * isolation levels.
+	 * <P>
+	 * <B>Note:</B> If this method is called during a transaction, the result is
+	 * implementation-defined.
+	 *
+	 * @param level
+	 *            one of the following <code>Connection</code> constants:
+	 *            <code>Connection.TRANSACTION_READ_UNCOMMITTED</code>,
+	 *            <code>Connection.TRANSACTION_READ_COMMITTED</code>,
+	 *            <code>Connection.TRANSACTION_REPEATABLE_READ</code>, or
+	 *            <code>Connection.TRANSACTION_SERIALIZABLE</code>. (Note that
+	 *            <code>Connection.TRANSACTION_NONE</code> cannot be used
+	 *            because it specifies that transactions are not supported.)
+	 * @exception SQLException
+	 *                if a database access error occurs, this method is called
+	 *                on a closed connection or the given parameter is not one
+	 *                of the <code>Connection</code> constants
+	 * @see DatabaseMetaData#supportsTransactionIsolationLevel
+	 * @see #getTransactionIsolation
+	 * @return isCreated
+	 */
+	public boolean beginTransaction(int level, boolean readOnly) {
 		boolean created = false;
 		try {
 			Connection conn = trans.get();
-			if(conn == null) {
+			if (conn == null) {
 				created = true;
 				conn = dataSource.getConnection();
 				conn.setReadOnly(readOnly);
 				conn.setAutoCommit(false);
 				conn.setTransactionIsolation(level);
 				trans.set(conn);
-			}else {
-				if(conn.getTransactionIsolation() < level) {
+			} else {
+				if (conn.getTransactionIsolation() < level) {
 					conn.setTransactionIsolation(level);
 				}
 			}
@@ -78,6 +80,7 @@ public class JdbcHelper {
 		}
 		return created;
 	}
+
 	public Savepoint setSavepoint() {
 		Savepoint sp = null;
 		Connection conn = trans.get();
@@ -88,10 +91,10 @@ public class JdbcHelper {
 		}
 		return sp;
 	}
-	
+
 	public void rollback(Savepoint sp) {
 		Connection conn = trans.get();
-		if(conn != null) {
+		if (conn != null) {
 			try {
 				conn.rollback(sp);
 				conn.releaseSavepoint(sp);
@@ -100,9 +103,10 @@ public class JdbcHelper {
 			}
 		}
 	}
+
 	public void rollback() {
 		Connection conn = trans.get();
-		if(conn != null) {
+		if (conn != null) {
 			try {
 				conn.rollback();
 				trans.remove();
@@ -111,17 +115,18 @@ public class JdbcHelper {
 			}
 		}
 	}
+
 	public void commit() {
 		Connection conn = trans.get();
-		if(conn != null) {
+		if (conn != null) {
 			try {
 				conn.commit();
 				trans.remove();
 			} catch (SQLException e) {
 				Failed.throwError(e.getMessage());
-			}finally {
+			} finally {
 				try {
-					if(conn != null  && !conn.isClosed()) {
+					if (conn != null && !conn.isClosed()) {
 						conn.close();
 					}
 				} catch (SQLException e) {
@@ -130,35 +135,36 @@ public class JdbcHelper {
 			}
 		}
 	}
+
 	/**
 	 * @param sql
 	 * @param args
 	 * @return list[0]:columnNames
 	 * @return list[?>0]:row data
 	 */
-	public List<Object[]> call(String sql,Object[] args) {
+	public List<Object[]> call(String sql, Object[] args) {
 		List<Object[]> result = new LinkedList<>();
 		Connection conn = trans.get();
 		PreparedStatement stat = null;
 		ResultSet rs = null;
 		boolean usingTrans = false;
-		if(conn == null) {
-			if(dataSource != null) {
+		if (conn == null) {
+			if (dataSource != null) {
 				try {
 					conn = dataSource.getConnection();
 				} catch (SQLException e) {
 					Failed.throwError(e.getMessage());
 				}
 			}
-		}else {
+		} else {
 			usingTrans = true;
 		}
-		if(conn != null) {
+		if (conn != null) {
 			try {
 				stat = conn.prepareCall(sql, ResultSet.FETCH_UNKNOWN, ResultSet.CONCUR_UPDATABLE);
-				if(args != null) {
-					for(int i = 0; i < args.length; i++ ){
-						stat.setObject(i+1, args[i]);
+				if (args != null) {
+					for (int i = 0; i < args.length; i++) {
+						stat.setObject(i + 1, args[i]);
 					}
 				}
 				rs = stat.executeQuery();
@@ -168,7 +174,7 @@ public class JdbcHelper {
 					rowNames[cc - 1] = md.getColumnName(cc);
 				}
 				result.add(rowNames);
-				while(rs.next()) {
+				while (rs.next()) {
 					Object[] row = new Object[md.getColumnCount()];
 					for (int cc = 1; cc <= md.getColumnCount(); cc++) {
 						row[cc - 1] = rs.getObject(cc);
@@ -178,15 +184,15 @@ public class JdbcHelper {
 				rs.close();
 			} catch (SQLException e) {
 				Failed.throwMsg(e.getMessage());
-			}finally {
-				if(stat != null) {
+			} finally {
+				if (stat != null) {
 					try {
 						stat.close();
 					} catch (SQLException e) {
 						Failed.throwMsg(e.getMessage());
 					}
 				}
-				if(conn != null && !usingTrans) {
+				if (conn != null && !usingTrans) {
 					try {
 						conn.close();
 					} catch (SQLException e) {
@@ -204,15 +210,15 @@ public class JdbcHelper {
 		Statement stat = null;
 		int[] result = null;
 		boolean usingTrans = false;
-		if(conn == null) {
-			if(dataSource != null) {
+		if (conn == null) {
+			if (dataSource != null) {
 				try {
 					conn = dataSource.getConnection();
 				} catch (SQLException e) {
 					Failed.throwError(e.getMessage());
 				}
 			}
-		}else {
+		} else {
 			usingTrans = true;
 		}
 		try {
@@ -244,21 +250,21 @@ public class JdbcHelper {
 		}
 		return result;
 	}
-	
-	private int[] batchExec(String sql,List<Object[]> args) {
+
+	private int[] batchExec(String sql, List<Object[]> args) {
 		Connection conn = trans.get();
 		PreparedStatement stat = null;
 		int[] result = null;
 		boolean usingTrans = false;
-		if(conn == null) {
-			if(dataSource != null) {
+		if (conn == null) {
+			if (dataSource != null) {
 				try {
 					conn = dataSource.getConnection();
 				} catch (SQLException e) {
 					Failed.throwError(e.getMessage());
 				}
 			}
-		}else {
+		} else {
 			usingTrans = true;
 		}
 		try {
@@ -293,21 +299,21 @@ public class JdbcHelper {
 		}
 		return result;
 	}
-	
-	public void query(String sql,Object[] args,Consumer<ResultSet> consumer) {
+
+	public void query(String sql, Object[] args, Consumer<ResultSet> consumer) {
 		Connection conn = trans.get();
 		PreparedStatement stat = null;
-		ResultSet rs = null;		
+		ResultSet rs = null;
 		boolean usingTrans = false;
-		if(conn == null) {
-			if(dataSource != null) {
+		if (conn == null) {
+			if (dataSource != null) {
 				try {
 					conn = dataSource.getConnection();
 				} catch (SQLException e) {
 					Failed.throwError(e.getMessage());
 				}
 			}
-		}else {
+		} else {
 			usingTrans = true;
 		}
 		try {
@@ -344,13 +350,14 @@ public class JdbcHelper {
 			}
 		}
 	}
-	
- 	public Object queryForObject(String sql) {
-		return queryForObject(sql,null);
+
+	public Object queryForObject(String sql) {
+		return queryForObject(sql, null);
 	}
+
 	public Object queryForObject(String sql, Object[] args) {
-		List<Object[]> list = call(sql,args);
-		if(list.size() == 2) {
+		List<Object[]> list = call(sql, args);
+		if (list.size() == 2) {
 			return list.get(1)[0];
 		}
 		return null;
@@ -359,25 +366,25 @@ public class JdbcHelper {
 	public int[] batchUpdate(String sql) {
 		return batchUpdate(sql, null);
 	}
-	
+
 	public int[] batchUpdate(String sql, List<Object[]> batchArgs) {
-		return batchExec(sql,batchArgs);
+		return batchExec(sql, batchArgs);
 	}
-	
+
 	public int update(String sql, Object[] args) {
 		int cnt = 0;
 		Connection conn = trans.get();
 		PreparedStatement stat = null;
 		boolean usingTrans = false;
-		if(conn == null) {
-			if(dataSource != null) {
+		if (conn == null) {
+			if (dataSource != null) {
 				try {
 					conn = dataSource.getConnection();
 				} catch (SQLException e) {
 					Failed.throwError(e.getMessage());
 				}
 			}
-		}else {
+		} else {
 			usingTrans = true;
 		}
 		try {

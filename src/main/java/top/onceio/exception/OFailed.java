@@ -1,12 +1,12 @@
 package top.onceio.exception;
 
-public class OFailed extends Exception{
+public class OFailed extends Exception {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	private String format;
 	private Object[] args;
 	private Object data;
@@ -14,13 +14,15 @@ public class OFailed extends Exception{
 	public OFailed(String format) {
 		super();
 		this.format = format;
-	}	
+	}
+
 	public OFailed(String format, Object[] args) {
 		super();
 		this.format = format;
 		this.args = args;
 	}
-	public OFailed(String format, Object[] args,Object data) {
+
+	public OFailed(String format, Object[] args, Object data) {
 		super();
 		this.format = format;
 		this.args = args;
@@ -30,9 +32,11 @@ public class OFailed extends Exception{
 	public String getFormat() {
 		return format;
 	}
+
 	public void setFormat(String format) {
 		this.format = format;
 	}
+
 	public Object[] getArgs() {
 		return args;
 	}
@@ -40,13 +44,15 @@ public class OFailed extends Exception{
 	public void setArgs(Object[] args) {
 		this.args = args;
 	}
-	
+
 	public Object getData() {
 		return data;
 	}
+
 	public void setData(Object data) {
 		this.data = data;
 	}
+
 	public static OFailed wrap(Throwable e) {
 		OFailed oe = new OFailed(e.getMessage());
 		return oe;

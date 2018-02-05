@@ -12,8 +12,11 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 public @interface Tbl {
 	String schema() default "";
+
 	Constraint[] constraints() default {};
-    Class<?> extend() default void.class;
-    /** 根据关联表自动创建  */
-    boolean autoCreate() default false;
+
+	Class<?> extend() default void.class;
+
+	/** 根据关联表自动创建 */
+	boolean autoCreate() default false;
 }

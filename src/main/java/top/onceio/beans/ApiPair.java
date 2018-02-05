@@ -24,46 +24,53 @@ import top.onceio.mvc.annocations.Attr;
 import top.onceio.mvc.annocations.Param;
 
 public class ApiPair {
-	
+
 	private static final Gson GSON = new Gson();
-	
+
 	private ApiMethod apiMethod;
 	private String api;
 	private Object bean;
 	private Method method;
-	private Map<String,Integer> nameVarIndex;
-	private Map<String,Class<?>> nameType;
-	private Map<Integer,String> paramNameArgIndex;
-	private Map<Integer,String> attrNameArgIndex;
+	private Map<String, Integer> nameVarIndex;
+	private Map<String, Class<?>> nameType;
+	private Map<Integer, String> paramNameArgIndex;
+	private Map<Integer, String> attrNameArgIndex;
 	private List<Integer> reqIndex;
 	private List<Integer> respIndex;
-	
-	
+
 	public ApiMethod getApiMethod() {
 		return apiMethod;
 	}
+
 	public void setApiMethod(ApiMethod apiMethod) {
 		this.apiMethod = apiMethod;
 	}
+
 	public String getApi() {
 		return api;
 	}
+
 	public void setApi(String api) {
 		this.api = api;
 	}
+
 	public Object getBean() {
 		return bean;
 	}
+
 	public void setBean(Object bean) {
 		this.bean = bean;
 	}
+
 	public Method getMethod() {
 		return method;
 	}
+
 	public void setMethod(Method method) {
 		this.method = method;
 	}
-	public ApiPair(ApiMethod apiMethod,String api, Object bean, Method method) {
+
+	public ApiPair(ApiMethod apiMethod, String api, Object bean, Method method) {
 		super();
 		this.apiMethod = apiMethod;
 		this.api = api;
@@ -73,15 +80,15 @@ public class ApiPair {
 		nameVarIndex = new HashMap<>(names.length);
 		for (int i = 0; i < names.length; i++) {
 			String name = names[i];
-			if(!name.isEmpty()) {
+			if (!name.isEmpty()) {
 				int end = name.length() - 1;
 				if (name.charAt(0) == '{' && name.charAt(end) == '}') {
 					nameVarIndex.put(name.substring(1, end), i);
 				}
 			}
-			
+
 		}
-		if(method.getParameterCount() > 0) {
+		if (method.getParameterCount() > 0) {
 			nameType = new HashMap<>(method.getParameterCount());
 			paramNameArgIndex = new HashMap<>(method.getParameterCount());
 			attrNameArgIndex = new HashMap<>(method.getParameterCount());
@@ -93,23 +100,25 @@ public class ApiPair {
 				Param paramAnn = param.getAnnotation(Param.class);
 				Attr attrAnn = param.getAnnotation(Attr.class);
 				if (paramAnn != null) {
-					paramNameArgIndex.put(i,paramAnn.value());
+					paramNameArgIndex.put(i, paramAnn.value());
 					nameType.put(paramAnn.value(), param.getType());
 				} else if (attrAnn != null) {
-					attrNameArgIndex.put(i,attrAnn.value());
-				}else if(HttpServletRequest.class.isAssignableFrom(param.getType())) {
+					attrNameArgIndex.put(i, attrAnn.value());
+				} else if (HttpServletRequest.class.isAssignableFrom(param.getType())) {
 					reqIndex.add(i);
-				}else if(HttpServletResponse.class.isAssignableFrom(param.getType())) {
+				} else if (HttpServletResponse.class.isAssignableFrom(param.getType())) {
 					respIndex.add(i);
 				}
 			}
 		}
 	}
+
 	/**
 	 * 根据方法参数及其注解，从req（Attr,Param,Body,Cookie)中取出数据
+	 * 
 	 * @param result
 	 * @param req
-	 */	
+	 */
 	public Object[] resoveReqParams(HttpServletRequest req, HttpServletResponse resp) {
 		JsonObject json = null;
 		try {
@@ -117,7 +126,7 @@ public class ApiPair {
 		} catch (JsonSyntaxException | JsonIOException | IOException e) {
 			e.printStackTrace();
 		}
-		if(json == null) {
+		if (json == null) {
 			json = new JsonObject();
 		}
 		String uri = req.getRequestURI().substring(req.getContextPath().length());
@@ -132,22 +141,22 @@ public class ApiPair {
 			String v = uris[i];
 			json.addProperty(name, v);
 		}
-		Map<String,String[]> map = req.getParameterMap();
+		Map<String, String[]> map = req.getParameterMap();
 		for (Map.Entry<String, String[]> entry : map.entrySet()) {
 			String[] vals = entry.getValue();
 			String name = entry.getKey();
 			String[] ps = name.split("\\.");
 			String pname = name;
 			JsonObject jobj = json;
-			if(ps.length > 0) {
-				pname = ps[ps.length-1];
-				jobj = getOrCreateFatherByPath(json,ps);
+			if (ps.length > 0) {
+				pname = ps[ps.length - 1];
+				jobj = getOrCreateFatherByPath(json, ps);
 			}
-			if(vals != null && vals.length == 1) {
+			if (vals != null && vals.length == 1) {
 				jobj.addProperty(pname, vals[0]);
 			} else {
 				JsonArray ja = new JsonArray();
-				for(String v:vals) {
+				for (String v : vals) {
 					ja.add(v);
 				}
 				jobj.add(pname, ja);
@@ -155,18 +164,8 @@ public class ApiPair {
 		}
 		Object[] args = new Object[method.getParameterCount()];
 		Class<?>[] types = method.getParameterTypes();
-		if(paramNameArgIndex != null && !paramNameArgIndex.isEmpty()) {
-			for (Map.Entry<Integer,String> entry : paramNameArgIndex.entrySet()) { 
-				Class<?> type = types[entry.getKey()];
-				if (entry.getValue().equals("")) {
-					args[entry.getKey()] = GSON.fromJson(json, type);	
-				} else {
-					args[entry.getKey()] = GSON.fromJson(json.get(entry.getValue()), type);
-				}
-			}
-		}
-		if(paramNameArgIndex != null && !paramNameArgIndex.isEmpty()) {
-			for (Map.Entry<Integer,String> entry : paramNameArgIndex.entrySet()) { 
+		if (paramNameArgIndex != null && !paramNameArgIndex.isEmpty()) {
+			for (Map.Entry<Integer, String> entry : paramNameArgIndex.entrySet()) {
 				Class<?> type = types[entry.getKey()];
 				if (entry.getValue().equals("")) {
 					args[entry.getKey()] = GSON.fromJson(json, type);
@@ -175,38 +174,50 @@ public class ApiPair {
 				}
 			}
 		}
-		if(attrNameArgIndex != null && !attrNameArgIndex.isEmpty()) {
-			for (Map.Entry<Integer,String> entry : attrNameArgIndex.entrySet()) {
+		if (paramNameArgIndex != null && !paramNameArgIndex.isEmpty()) {
+			for (Map.Entry<Integer, String> entry : paramNameArgIndex.entrySet()) {
+				Class<?> type = types[entry.getKey()];
+				if (entry.getValue().equals("")) {
+					args[entry.getKey()] = GSON.fromJson(json, type);
+				} else {
+					args[entry.getKey()] = GSON.fromJson(json.get(entry.getValue()), type);
+				}
+			}
+		}
+		if (attrNameArgIndex != null && !attrNameArgIndex.isEmpty()) {
+			for (Map.Entry<Integer, String> entry : attrNameArgIndex.entrySet()) {
 				args[entry.getKey()] = req.getAttribute(entry.getValue());
 			}
 		}
-		if(reqIndex != null && !reqIndex.isEmpty()) {
-			for(Integer i:reqIndex) {
+		if (reqIndex != null && !reqIndex.isEmpty()) {
+			for (Integer i : reqIndex) {
 				args[i] = req;
 			}
 		}
-		if(respIndex != null && !respIndex.isEmpty()) {
-			for(Integer i:respIndex) {
+		if (respIndex != null && !respIndex.isEmpty()) {
+			for (Integer i : respIndex) {
 				args[i] = resp;
 			}
 		}
 		return args;
 	}
-	
-	private static JsonObject getOrCreateFatherByPath(JsonObject json,String[] ps) {
+
+	private static JsonObject getOrCreateFatherByPath(JsonObject json, String[] ps) {
 		JsonObject jobj = json;
-		for(int i = 0; i < ps.length -1 ; i++) {
+		for (int i = 0; i < ps.length - 1; i++) {
 			String p = ps[i];
 			jobj = jobj.getAsJsonObject(p);
-			if(jobj == null) {
+			if (jobj == null) {
 				jobj = new JsonObject();
 				jobj.add(p, jobj);
 			}
 		}
 		return jobj;
 	}
-	public Object invoke(HttpServletRequest req, HttpServletResponse resp) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    	Object[] args = resoveReqParams(req, resp);
+
+	public Object invoke(HttpServletRequest req, HttpServletResponse resp)
+			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Object[] args = resoveReqParams(req, resp);
 		Object obj = method.invoke(bean, args);
 		return obj;
 	}

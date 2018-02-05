@@ -8,10 +8,11 @@ import java.lang.annotation.Target;
 
 import top.onceio.beans.ApiMethod;
 
-@Target({ElementType.TYPE,ElementType.METHOD})
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface Api {
 	String value() default "";
-	ApiMethod[] method() default {ApiMethod.GET};
+
+	ApiMethod[] method() default { ApiMethod.GET };
 }

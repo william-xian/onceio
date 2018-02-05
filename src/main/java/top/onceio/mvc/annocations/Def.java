@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 /**
  * 定义一个Bean对象
  */
-@Target({ElementType.TYPE,ElementType.METHOD})
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface Def {

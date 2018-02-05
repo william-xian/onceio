@@ -41,19 +41,21 @@ public class Cnd<E> extends Tpl {
 	private StringBuffer selfSql = new StringBuffer();
 	private Class<E> tplClass;
 	private E tpl;
-	
+
 	@SuppressWarnings("unchecked")
 	public Cnd(Class<E> tplClass) {
 		this.tplClass = tplClass;
 		CndSetterProxy cglibProxy = new CndSetterProxy();
-        Enhancer enhancer = new Enhancer();  
-        enhancer.setSuperclass(tplClass);  
-        enhancer.setCallback(cglibProxy);  
-        tpl = (E)enhancer.create(); 
+		Enhancer enhancer = new Enhancer();
+		enhancer.setSuperclass(tplClass);
+		enhancer.setCallback(cglibProxy);
+		tpl = (E) enhancer.create();
 	}
+
 	public Integer getPageSize() {
 		return pageSize;
 	}
+
 	public void setPageSize(Integer pageSize) {
 		this.pageSize = pageSize;
 	}
@@ -61,6 +63,7 @@ public class Cnd<E> extends Tpl {
 	public void setPage(Integer page) {
 		this.page = page;
 	}
+
 	public Integer getPage() {
 		return page;
 	}
@@ -68,35 +71,44 @@ public class Cnd<E> extends Tpl {
 	public E getPageArg() {
 		return pageArg;
 	}
+
 	public void setPageArg(E pageArg) {
 		this.pageArg = pageArg;
 	}
+
 	public Boolean getIsNext() {
 		return isNext;
 	}
+
 	public void setIsNext(Boolean isNext) {
 		this.isNext = isNext;
 	}
+
 	public E eq() {
 		opt = "=";
 		return tpl;
 	}
+
 	public E ne() {
 		opt = "!=";
 		return tpl;
 	}
+
 	public E lt() {
 		opt = "<";
 		return tpl;
 	}
+
 	public E le() {
 		opt = "<=";
 		return tpl;
 	}
+
 	public E gt() {
 		opt = ">";
 		return tpl;
 	}
+
 	public E ge() {
 		opt = ">=";
 		return tpl;
@@ -106,10 +118,12 @@ public class Cnd<E> extends Tpl {
 		opt = "IS NULL";
 		return tpl;
 	}
+
 	public E not_null(E e) {
 		opt = "IS NOT NULL";
 		return tpl;
 	}
+
 	/**
 	 * 对于需要查找null值字段，传递vals为null值，
 	 */
@@ -118,29 +132,34 @@ public class Cnd<E> extends Tpl {
 		inVals = vals;
 		return tpl;
 	}
+
 	public E like() {
 		opt = "LIKE";
 		return tpl;
 	}
+
 	public E pattern() {
 		opt = "~*";
 		return tpl;
 	}
+
 	public Cnd<E> and() {
-		if(opt != null) {
-			logic = "AND";	
+		if (opt != null) {
+			logic = "AND";
 		}
 		return this;
 	}
+
 	public Cnd<E> or() {
-		if(opt != null) {
-			logic = "OR";	
+		if (opt != null) {
+			logic = "OR";
 		}
 		return this;
 	}
+
 	public Cnd<E> not() {
-		if(opt != null) {
-			logic = "NOT";	
+		if (opt != null) {
+			logic = "NOT";
 		}
 		return this;
 	}
@@ -150,235 +169,245 @@ public class Cnd<E> extends Tpl {
 		extCnds.add(extCnd);
 		return this;
 	}
+
 	public Cnd<E> or(Cnd<E> extCnd) {
 		extLogics.add("OR");
 		extCnds.add(extCnd);
 		return this;
 	}
+
 	public Cnd<E> not(Cnd<E> extCnd) {
 		extLogics.add("NOT");
 		extCnds.add(extCnd);
 		return this;
 	}
-	
-	
-	public String whereSql(List<Object> sqlArgs){
+
+	public String whereSql(List<Object> sqlArgs) {
 		StringBuffer self = new StringBuffer();
-		if(selfSql.length() > 0) {
-			self.append("("+selfSql+")");
+		if (selfSql.length() > 0) {
+			self.append("(" + selfSql + ")");
 		}
 		sqlArgs.addAll(args);
-		for(int i = 0; i < this.extLogics.size(); i++) {
+		for (int i = 0; i < this.extLogics.size(); i++) {
 			String sl = this.extLogics.get(i);
 			Cnd<E> c = extCnds.get(i);
 			String other = c.whereSql(sqlArgs);
-			if(!other.equals("")){
-				switch(sl) {
+			if (!other.equals("")) {
+				switch (sl) {
 				case "AND":
-					if(self.length() > 0) {
+					if (self.length() > 0) {
 						self.append(" AND");
 					}
 					self.append(other);
 					break;
 				case "OR":
-					if(self.length() > 0) {
+					if (self.length() > 0) {
 						self.append(" OR");
 					}
 					self.append(other);
 					break;
 				case "NOT":
-					if(self.length() > 0) {
+					if (self.length() > 0) {
 						self.append(" AND NOT");
 					} else {
 						self.append(" NOT");
 					}
 					self.append(other);
 					break;
-					default:
-				}	
-			}else {
+				default:
+				}
+			} else {
 				LOGGER.warn("查询条件是空的");
 			}
 		}
 		return self.toString();
 	}
-	
-	public String afterWhere(TableMeta tm,List<Object> sqlArgs) {
+
+	public String afterWhere(TableMeta tm, List<Object> sqlArgs) {
 		StringBuffer afterWhere = new StringBuffer();
-		Map<String,String> tokens = null;;
-		if(tm.getEngine() != null) {
+		Map<String, String> tokens = null;
+		;
+		if (tm.getEngine() != null) {
 			DDEngine dde = tm.getEngine();
 			tokens = dde.getColumnToOrigin();
 		}
-		
+
 		String whereCnd = whereSql(sqlArgs);
 		if (!whereCnd.equals("")) {
-			if(tokens == null) {
+			if (tokens == null) {
 				afterWhere.append(String.format(" WHERE (%s)", whereCnd));
-			}else {
-				afterWhere.append(String.format(" WHERE (%s)", OUtils.replaceWord(whereCnd, tokens)));	
+			} else {
+				afterWhere.append(String.format(" WHERE (%s)", OUtils.replaceWord(whereCnd, tokens)));
 			}
 		}
 		String group = group();
-		if(group != null && !group.isEmpty()) {
-			if(tokens == null) {
+		if (group != null && !group.isEmpty()) {
+			if (tokens == null) {
 				afterWhere.append(String.format(" GROUP BY %s", group));
-			}else {
+			} else {
 				afterWhere.append(String.format(" GROUP BY %s", OUtils.replaceWord(group, tokens)));
 			}
 		}
 		String having = getHaving(sqlArgs);
-		if(having != null && !having.isEmpty()) {
-			if(tokens == null) {
+		if (having != null && !having.isEmpty()) {
+			if (tokens == null) {
 				afterWhere.append(String.format(" HAVING %s", having));
-			}else {
-				afterWhere.append(String.format(" HAVING %s", OUtils.replaceWord(having, tokens)));	
+			} else {
+				afterWhere.append(String.format(" HAVING %s", OUtils.replaceWord(having, tokens)));
 			}
 		}
 		String order = getOrder();
-		if(!order.isEmpty()) {
-			if(tokens == null) {
+		if (!order.isEmpty()) {
+			if (tokens == null) {
 				afterWhere.append(String.format(" ORDER BY %s", order));
-			}else {
-				afterWhere.append(String.format(" ORDER BY %s", OUtils.replaceWord(order, tokens)));	
+			} else {
+				afterWhere.append(String.format(" ORDER BY %s", OUtils.replaceWord(order, tokens)));
 			}
-		}		
+		}
 		return afterWhere.toString();
 	}
-	
-	public StringBuffer selectSql(TableMeta tm,SelectTpl<E> tpl) {
+
+	public StringBuffer selectSql(TableMeta tm, SelectTpl<E> tpl) {
 		StringBuffer sqlSelect = new StringBuffer();
 		sqlSelect.append("SELECT ");
-		if(tm.getEngine() == null) {
-			if(tpl != null && tpl.sql() != null && !tpl.sql().isEmpty()) {
-				sqlSelect.append(tpl.sql());		
-			}else {
-				for(ColumnMeta cm:tm.getColumnMetas()) {
-					sqlSelect.append(cm.getName()+",");
+		if (tm.getEngine() == null) {
+			if (tpl != null && tpl.sql() != null && !tpl.sql().isEmpty()) {
+				sqlSelect.append(tpl.sql());
+			} else {
+				for (ColumnMeta cm : tm.getColumnMetas()) {
+					sqlSelect.append(cm.getName() + ",");
 				}
-				sqlSelect.delete(sqlSelect.length()-1, sqlSelect.length());
+				sqlSelect.delete(sqlSelect.length() - 1, sqlSelect.length());
 			}
 			sqlSelect.append(String.format(" FROM %s", tm.getTable()));
-		}else {
+		} else {
 			DDEngine dde = tm.getEngine();
 			Set<String> params = new HashSet<>();
-			Map<String,String> colToOrigin = dde.getColumnToOrigin();
-			if(tpl != null) {
-				params.addAll(tpl.getArgNames());	
-				sqlSelect.append(tpl.sql(colToOrigin));		
-			}else {
-				for(ColumnMeta cm:tm.getColumnMetas()) {
+			Map<String, String> colToOrigin = dde.getColumnToOrigin();
+			if (tpl != null) {
+				params.addAll(tpl.getArgNames());
+				sqlSelect.append(tpl.sql(colToOrigin));
+			} else {
+				for (ColumnMeta cm : tm.getColumnMetas()) {
 					params.add(cm.getName());
-					sqlSelect.append(String.format("%s %s,", colToOrigin.get(cm.getName()),cm.getName()));
+					sqlSelect.append(String.format("%s %s,", colToOrigin.get(cm.getName()), cm.getName()));
 				}
-				sqlSelect.delete(sqlSelect.length()-1, sqlSelect.length());
+				sqlSelect.delete(sqlSelect.length() - 1, sqlSelect.length());
 			}
 			String mainPath = tm.getEntity().getSuperclass().getSimpleName();
-			String joinTables = dde.genericJoinSqlByParams(mainPath, params,null);
+			String joinTables = dde.genericJoinSqlByParams(mainPath, params, null);
 			sqlSelect.append(String.format(" FROM %s", joinTables));
 			System.err.println(sqlSelect);
 		}
 		return sqlSelect;
 	}
-	public StringBuffer wholeSql(TableMeta tm,SelectTpl<E> tpl,List<Object> sqlArgs) {
+
+	public StringBuffer wholeSql(TableMeta tm, SelectTpl<E> tpl, List<Object> sqlArgs) {
 		StringBuffer sql = new StringBuffer();
-		sql.append(selectSql(tm,tpl));
-		sql.append(afterWhere(tm,sqlArgs));
+		sql.append(selectSql(tm, tpl));
+		sql.append(afterWhere(tm, sqlArgs));
 		return sql;
 	}
-	
-	//TODO 根据上一条数据 和order语句计算相临的两页数据
-	public String pageSql(TableMeta tm,SelectTpl<E> tpl,List<Object> sqlArgs) {
-		StringBuffer s = wholeSql(tm,tpl,sqlArgs);
+
+	// TODO 根据上一条数据 和order语句计算相临的两页数据
+	public String pageSql(TableMeta tm, SelectTpl<E> tpl, List<Object> sqlArgs) {
+		StringBuffer s = wholeSql(tm, tpl, sqlArgs);
 		s.append(" LIMIT ? OFFSET ?");
-		sqlArgs.addAll(Arrays.asList(getPageSize(),(getPage()-1)*getPageSize()));
+		sqlArgs.addAll(Arrays.asList(getPageSize(), (getPage() - 1) * getPageSize()));
 		return s.toString();
 	}
-	public String countSql(TableMeta tm,SelectTpl<E> tpl,List<Object> sqlArgs) {
+
+	public String countSql(TableMeta tm, SelectTpl<E> tpl, List<Object> sqlArgs) {
 		String group = group();
-		if(tm.getEngine() == null) {
-			if(group != null && !group.isEmpty()) {
-				return String.format("SELECT COUNT(1) FROM (SELECT 1 FROM %s %s) t", tm.getTable(), afterWhere(tm,sqlArgs));
-			}else {
-				return String.format("SELECT COUNT(1) FROM %s %s", tm.getTable(), afterWhere(tm,sqlArgs));
-			}	
-		}else {
-			StringBuffer select = selectSql(tm,tpl);
+		if (tm.getEngine() == null) {
+			if (group != null && !group.isEmpty()) {
+				return String.format("SELECT COUNT(1) FROM (SELECT 1 FROM %s %s) t", tm.getTable(),
+						afterWhere(tm, sqlArgs));
+			} else {
+				return String.format("SELECT COUNT(1) FROM %s %s", tm.getTable(), afterWhere(tm, sqlArgs));
+			}
+		} else {
+			StringBuffer select = selectSql(tm, tpl);
 			int fromIndex = select.indexOf("FROM");
-			return String.format("SELECT COUNT(1) FROM (SELECT 1 %s %s) t", select.substring(fromIndex), afterWhere(tm,sqlArgs));
+			return String.format("SELECT COUNT(1) FROM (SELECT 1 %s %s) t", select.substring(fromIndex),
+					afterWhere(tm, sqlArgs));
 		}
 	}
-	
+
 	public HavingTpl<E> having() {
-		if(having == null) {
+		if (having == null) {
 			having = new HavingTpl<E>(tplClass);
 		}
 		return having;
 	}
+
 	public String getHaving(List<Object> sqlArgs) {
-		if(having != null) {
+		if (having != null) {
 			return having.sql(sqlArgs);
-		}else {
+		} else {
 			return null;
 		}
 	}
+
 	public OrderTpl<E> orderBy() {
-		if(order == null) {
+		if (order == null) {
 			order = new OrderTpl<E>(tplClass);
 		}
 		return order;
 	}
+
 	public String getOrder() {
-		if(order != null) {
-			return order.getOrder();	
-		}else {
+		if (order != null) {
+			return order.getOrder();
+		} else {
 			return "";
 		}
 	}
-	public GroupTpl<E> groupBy(){
-		if(group == null) {
+
+	public GroupTpl<E> groupBy() {
+		if (group == null) {
 			group = new GroupTpl<E>(tplClass);
 		}
 		return group;
 	}
+
 	public String group() {
-		if(group != null) {
+		if (group != null) {
 			return group.getGroup();
-		}else {
+		} else {
 			return null;
 		}
 	}
-	
-	class CndSetterProxy implements MethodInterceptor {  
-	    @Override  
-	    public Object intercept(Object o, Method method, Object[] argsx, MethodProxy methodProxy) throws Throwable {
-	        if(method.getName().startsWith("set") && argsx.length == 1) {
-	            if(method.getName().length() > 3) {
-	            	String fieldName = method.getName().substring(3,4).toLowerCase() +method.getName().substring(4);
-	            	String strLogic = "";
-	            	if(logic != null) {
-	            		strLogic = logic.toString() +" ";
-	            	}
-	            	if(opt.equals("IN")&& inVals != null && inVals.length > 1) {
-	            		String stub = OUtils.genStub("?", ",", inVals.length);
-	            		selfSql.append(String.format("%s%s %s (%s)", strLogic,fieldName,opt, stub));
-	            		for(Object v:inVals) {
-		            		args.add(v);
-	            		}
-	            	}else if(opt.equals("IS NULL")){
-	            		selfSql.append(String.format("%s%s IS NULL", strLogic,fieldName));
-	            	}else if(opt.equals("IS NOT NULL")){
-	            		selfSql.append(String.format("%s%s IS NOT NULL",strLogic, fieldName));
-	            	}else {
-	            		selfSql.append(String.format("%s%s %s ?", strLogic, fieldName,opt));
-	            		args.add(argsx[0]);
-		            	
-	            	}
-	            }
-	        }
-	        return o;  
-	    }  
-	}
-	
-}
 
+	class CndSetterProxy implements MethodInterceptor {
+		@Override
+		public Object intercept(Object o, Method method, Object[] argsx, MethodProxy methodProxy) throws Throwable {
+			if (method.getName().startsWith("set") && argsx.length == 1) {
+				if (method.getName().length() > 3) {
+					String fieldName = method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4);
+					String strLogic = "";
+					if (logic != null) {
+						strLogic = logic.toString() + " ";
+					}
+					if (opt.equals("IN") && inVals != null && inVals.length > 1) {
+						String stub = OUtils.genStub("?", ",", inVals.length);
+						selfSql.append(String.format("%s%s %s (%s)", strLogic, fieldName, opt, stub));
+						for (Object v : inVals) {
+							args.add(v);
+						}
+					} else if (opt.equals("IS NULL")) {
+						selfSql.append(String.format("%s%s IS NULL", strLogic, fieldName));
+					} else if (opt.equals("IS NOT NULL")) {
+						selfSql.append(String.format("%s%s IS NOT NULL", strLogic, fieldName));
+					} else {
+						selfSql.append(String.format("%s%s %s ?", strLogic, fieldName, opt));
+						args.add(argsx[0]);
+
+					}
+				}
+			}
+			return o;
+		}
+	}
+
+}

@@ -26,7 +26,9 @@ public class ApiResover {
 		fixedUri.put(apiMethod.name() + ":" + pattern, new ApiPair(apiMethod, api, bean, method));
 		return this;
 	}
+
 	private List<String> apis = new ArrayList<>();
+
 	public ApiResover build() {
 		apis.addAll(fixedUri.keySet());
 		Collections.sort(apis, new Comparator<String>() {

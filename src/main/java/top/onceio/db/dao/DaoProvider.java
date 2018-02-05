@@ -17,75 +17,79 @@ import top.onceio.util.OReflectUtil;
 public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 	@Using
 	protected DaoHelper daoHelper;
-	
+
 	private Class<T> tbl;
-	
+
 	@SuppressWarnings("unchecked")
 	public DaoProvider() {
 		Type t = DaoProvider.class.getTypeParameters()[0];
-		tbl = (Class<T>)OReflectUtil.searchGenType(DaoProvider.class, this.getClass(), t);
+		tbl = (Class<T>) OReflectUtil.searchGenType(DaoProvider.class, this.getClass(), t);
 	}
-	
-	@Api(method={ApiMethod.GET,ApiMethod.POST})
+
+	@Api(method = { ApiMethod.GET, ApiMethod.POST })
 	@Override
-	public T get(@Param("id")Long id) {
+	public T get(@Param("id") Long id) {
 		daoHelper.get(tbl, id);
 		return daoHelper.get(tbl, id);
 	}
-	@Api(method=ApiMethod.PUT)
+
+	@Api(method = ApiMethod.PUT)
 	@Override
-	public T insert(@Param("entity")T entity) {
+	public T insert(@Param("entity") T entity) {
 		return daoHelper.insert(entity);
 	}
 
-	@Api(method=ApiMethod.PUT)
+	@Api(method = ApiMethod.PUT)
 	@Override
-	public int batchInsert(@Param("entities")List<T> entities) {
+	public int batchInsert(@Param("entities") List<T> entities) {
 		return daoHelper.batchInsert(entities);
 	}
-	@Api(method=ApiMethod.PUT)
+
+	@Api(method = ApiMethod.PUT)
 	@Override
-	public int update(@Param("entity")T entity) {
+	public int update(@Param("entity") T entity) {
 		return daoHelper.update(entity);
 	}
-	@Api(method=ApiMethod.PATCH)
+
+	@Api(method = ApiMethod.PATCH)
 	@Override
-	public int updateIgnoreNull(@Param("entity")T entity) {
+	public int updateIgnoreNull(@Param("entity") T entity) {
 		return daoHelper.updateIgnoreNull(entity);
 	}
 
 	@Override
 	public int updateByTpl(UpdateTpl<T> tpl) {
-		return daoHelper.updateByTpl(tbl,tpl);
+		return daoHelper.updateByTpl(tbl, tpl);
 	}
-	
-	@Api(method=ApiMethod.PATCH)
+
+	@Api(method = ApiMethod.PATCH)
 	@Override
-	public int updateByTplCnd(@Param("tpl")UpdateTpl<T> tpl, @Param("cnd")Cnd<T> cnd) {
-		return daoHelper.updateByTplCnd(tbl,tpl,cnd);
+	public int updateByTplCnd(@Param("tpl") UpdateTpl<T> tpl, @Param("cnd") Cnd<T> cnd) {
+		return daoHelper.updateByTplCnd(tbl, tpl, cnd);
 	}
-	
-	@Api(method=ApiMethod.REMOVE)
+
+	@Api(method = ApiMethod.REMOVE)
 	@Override
-	public int removeById(@Param("id")Long id) {
+	public int removeById(@Param("id") Long id) {
 		return daoHelper.removeById(tbl, id);
 	}
 
-	@Api(method=ApiMethod.REMOVE)
+	@Api(method = ApiMethod.REMOVE)
 	@Override
-	public int removeByIds(@Param("ids")List<Long> ids) {
+	public int removeByIds(@Param("ids") List<Long> ids) {
 		return daoHelper.removeByIds(tbl, ids);
 	}
 
-	@Api(method=ApiMethod.REMOVE)
+	@Api(method = ApiMethod.REMOVE)
 	@Override
-	public int remove(@Param("cnd")Cnd<T> cnd) {
+	public int remove(@Param("cnd") Cnd<T> cnd) {
 		return daoHelper.remove(tbl, cnd);
 	}
-	@Api(method=ApiMethod.RECOVERY)
+
+	@Api(method = ApiMethod.RECOVERY)
 	@Override
-	public int recovery(@Param("cnd")Cnd<T> cnd) {
-		return daoHelper.recovery(tbl,cnd);
+	public int recovery(@Param("cnd") Cnd<T> cnd) {
+		return daoHelper.recovery(tbl, cnd);
 	}
 
 	@Override
@@ -102,33 +106,34 @@ public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 	public int delete(Cnd<T> cnd) {
 		return daoHelper.delete(tbl, cnd);
 	}
-	
-	@Api(method=ApiMethod.RECOVERY)
+
+	@Api(method = ApiMethod.RECOVERY)
 	@Override
-	public T fetch(@Param("tpl")SelectTpl<T> tpl, @Param("cnd")Cnd<T> cnd) {
-		return daoHelper.fetch(tbl,tpl, cnd);
+	public T fetch(@Param("tpl") SelectTpl<T> tpl, @Param("cnd") Cnd<T> cnd) {
+		return daoHelper.fetch(tbl, tpl, cnd);
 	}
-	@Api(method={ApiMethod.GET,ApiMethod.POST})
+
+	@Api(method = { ApiMethod.GET, ApiMethod.POST })
 	@Override
-	public List<T> findByIds(@Param("ids")List<Long> ids) {
+	public List<T> findByIds(@Param("ids") List<Long> ids) {
 		return daoHelper.findByIds(tbl, ids);
 	}
 
-	@Api(method={ApiMethod.GET,ApiMethod.POST})
+	@Api(method = { ApiMethod.GET, ApiMethod.POST })
 	@Override
-	public Page<T> find(@Param("cnd")Cnd<T> cnd) {
+	public Page<T> find(@Param("cnd") Cnd<T> cnd) {
 		return daoHelper.find(tbl, cnd);
 	}
 
-	@Api(method={ApiMethod.GET,ApiMethod.POST})
+	@Api(method = { ApiMethod.GET, ApiMethod.POST })
 	@Override
-	public Page<T> findTpl(@Param("tpl")SelectTpl<T> tpl, @Param("cnd")Cnd<T> cnd) {
+	public Page<T> findTpl(@Param("tpl") SelectTpl<T> tpl, @Param("cnd") Cnd<T> cnd) {
 		return daoHelper.findByTpl(tbl, tpl, cnd);
 	}
-	
-	@Api(method={ApiMethod.GET,ApiMethod.POST})
+
+	@Api(method = { ApiMethod.GET, ApiMethod.POST })
 	@Override
-	public void download(@Param("tpl")SelectTpl<T> tpl, @Param("cnd")Cnd<T> cnd, Consumer<T> consumer) {
+	public void download(@Param("tpl") SelectTpl<T> tpl, @Param("cnd") Cnd<T> cnd, Consumer<T> consumer) {
 		daoHelper.download(tbl, tpl, cnd, consumer);
 	}
 
@@ -139,7 +144,7 @@ public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 
 	@Override
 	public long count(Cnd<T> cnd) {
-		return daoHelper.count(tbl,cnd);
+		return daoHelper.count(tbl, cnd);
 	}
 
 }

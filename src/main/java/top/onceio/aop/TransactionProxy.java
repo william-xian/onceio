@@ -19,15 +19,15 @@ public class TransactionProxy implements MethodInterceptor {
 		Transactional trans = method.getAnnotation(Transactional.class);
 		if (trans != null) {
 			JdbcHelper jdbcHelper = BeansEden.get().load(JdbcHelper.class);
-			boolean created = jdbcHelper.beginTransaction(trans.isolation(),trans.readOnly());
+			boolean created = jdbcHelper.beginTransaction(trans.isolation(), trans.readOnly());
 			try {
 				result = proxy.invokeSuper(obj, args);
-				if(created) {
+				if (created) {
 					jdbcHelper.commit();
 				}
 			} catch (Exception e) {
-				if(created) {
-					jdbcHelper.rollback();	
+				if (created) {
+					jdbcHelper.rollback();
 				}
 				throw e;
 			}
@@ -36,21 +36,22 @@ public class TransactionProxy implements MethodInterceptor {
 		}
 		return result;
 	}
-	//TODO
-	public Object get(Object obj,Method method,Object[] args) {
+
+	// TODO
+	public Object get(Object obj, Method method, Object[] args) {
 		Object result = null;
 		Cache cache = BeansEden.get().load(Cache.class);
-		if(cache != null) {
+		if (cache != null) {
 			String key = null;
 			Object ret = null;
 			CacheEvict evict = method.getAnnotation(CacheEvict.class);
 			CachePut put = method.getAnnotation(CachePut.class);
 			Cacheable cacheable = method.getAnnotation(Cacheable.class);
-			if(cacheable != null) {
+			if (cacheable != null) {
 				result = cache.get(key, method.getReturnType());
-			} else if(evict != null) {
+			} else if (evict != null) {
 				cache.evict(key);
-			}else if(put != null) {
+			} else if (put != null) {
 				cache.put(key, ret);
 			}
 		}

@@ -31,139 +31,157 @@ public class TableMeta {
 	transient List<ConstraintMeta> fieldConstraint = new ArrayList<>(0);
 	List<ConstraintMeta> constraints;
 	List<ColumnMeta> columnMetas = new ArrayList<>(0);
-	transient Map<String,ColumnMeta> nameToColumnMeta = new HashMap<>();
+	transient Map<String, ColumnMeta> nameToColumnMeta = new HashMap<>();
 	transient DDEngine engine;
 	transient Class<?> entity;
+
 	public String getTable() {
 		return table;
 	}
+
 	public void setTable(String table) {
 		this.table = table;
 		freshConstraintMetaTable();
 	}
+
 	public String getEntityName() {
 		return entityName;
 	}
+
 	public void setEntityName(String entity) {
 		this.entityName = entity;
 	}
+
 	public String getExtend() {
 		return extend;
 	}
+
 	public void setExtend(String extend) {
 		this.extend = extend;
 	}
+
 	public List<ColumnMeta> getColumnMetas() {
 		return columnMetas;
 	}
+
 	public ConstraintMeta getPrimaryKey() {
 		return primaryKey;
 	}
+
 	public void setPrimaryKey(ConstraintMeta primaryKey) {
 		this.primaryKey = primaryKey;
 	}
+
 	public void setPrimaryKey(String primaryKey) {
 		ConstraintMeta pk = new ConstraintMeta();
 		pk.setTable(this.table);
-		pk.setName(String.format("pk_%s_%s", pk.table,primaryKey));
+		pk.setName(String.format("pk_%s_%s", pk.table, primaryKey));
 		pk.setColumns(Arrays.asList(primaryKey));
 		pk.setType(ConstraintType.PRIMARY_KEY);
 		pk.setUsing("BTREE");
 		this.primaryKey = pk;
 	}
-	
+
 	public List<ConstraintMeta> getFieldConstraint() {
 		return fieldConstraint;
 	}
+
 	public void setFieldConstraint(List<ConstraintMeta> fieldConstraint) {
 		this.fieldConstraint = fieldConstraint;
 	}
+
 	public List<ConstraintMeta> getConstraints() {
 		return constraints;
 	}
+
 	public void setConstraints(List<ConstraintMeta> constraints) {
 		this.constraints = constraints;
 	}
-	//TODO O1
+
+	// TODO O1
 	public ColumnMeta getColumnMetaByName(String colName) {
-		for(String name:nameToColumnMeta.keySet()) {
-			if(name.equalsIgnoreCase(colName)){
-				return nameToColumnMeta.get(name);	
+		for (String name : nameToColumnMeta.keySet()) {
+			if (name.equalsIgnoreCase(colName)) {
+				return nameToColumnMeta.get(name);
 			}
 		}
 		return null;
 	}
+
 	public void setColumnMetas(List<ColumnMeta> columnMetas) {
 		this.columnMetas = columnMetas;
 		this.nameToColumnMeta = new HashMap<>(columnMetas.size());
 		this.fieldConstraint = new ArrayList<>(columnMetas.size());
-		for(ColumnMeta cm:columnMetas) {
+		for (ColumnMeta cm : columnMetas) {
 			this.nameToColumnMeta.put(cm.name, cm);
 		}
 	}
-	
+
 	public DDEngine getEngine() {
 		return engine;
 	}
-	
+
 	public Class<?> getEntity() {
 		return entity;
 	}
+
 	public void freshNameToField() {
 		try {
 			Class<?> tblEntity = OnceIO.getClassLoader().loadClass(entityName);
 			entity = tblEntity;
 			List<Class<?>> classes = new ArrayList<>();
-			for(Class<?> clazz = tblEntity;!clazz.equals(Object.class);clazz=clazz.getSuperclass()) {
+			for (Class<?> clazz = tblEntity; !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
 				classes.add(0, clazz);
 			}
 			Set<String> missed = new HashSet<>(nameToColumnMeta.keySet());
-			
-			for(Class<?> clazz:classes) {
-				for(Field field:clazz.getDeclaredFields()){
+
+			for (Class<?> clazz : classes) {
+				for (Field field : clazz.getDeclaredFields()) {
 					ColumnMeta cm = nameToColumnMeta.get(field.getName());
-					if(cm != null){
+					if (cm != null) {
 						field.setAccessible(true);
 						cm.setField(field);
-						if(field.getType().equals(field.getGenericType())) {
+						if (field.getType().equals(field.getGenericType())) {
 							cm.setJavaBaseType(field.getType());
-						}else {
-							Class<?> jbt = OReflectUtil.searchGenType(clazz, classes.get(classes.size()-1), field.getGenericType());
+						} else {
+							Class<?> jbt = OReflectUtil.searchGenType(clazz, classes.get(classes.size() - 1),
+									field.getGenericType());
 							cm.setJavaBaseType(jbt);
 						}
 						missed.remove(field.getName());
 					}
-				}	
+				}
 			}
-			if(!missed.isEmpty()) {
+			if (!missed.isEmpty()) {
 				LOGGER.warn(String.format("以下字段没有加载到Field %s", OUtils.toJSON(missed)));
 			}
 		} catch (ClassNotFoundException e) {
 			OAssert.fatal("无法加载 %s", entityName);
 		}
 	}
+
 	public void freshConstraintMetaTable() {
-		if(columnMetas != null && !columnMetas.isEmpty()) {
+		if (columnMetas != null && !columnMetas.isEmpty()) {
 			nameToColumnMeta.clear();
 			fieldConstraint = new ArrayList<>(columnMetas.size());
-			for(ColumnMeta cm:columnMetas) {
-				if(cm.unique){
+			for (ColumnMeta cm : columnMetas) {
+				if (cm.unique) {
 					ConstraintMeta cnsMeta = new ConstraintMeta();
-					List<String> cols = new ArrayList<> ();
+					List<String> cols = new ArrayList<>();
 					cols.add(cm.getName());
 					cnsMeta.setColumns(new ArrayList<String>(cols));
 					cnsMeta.setTable(this.getTable());
-					cnsMeta.setName("un_" + cnsMeta.getTable()+"_"+cm.name);
+					cnsMeta.setName("un_" + cnsMeta.getTable() + "_" + cm.name);
 					cnsMeta.setUsing(cm.using);
 					cnsMeta.setType(ConstraintType.UNIQUE);
 					fieldConstraint.add(cnsMeta);
-				}else if(cm.useFK && cm.refTable != null) {
+				} else if (cm.useFK && cm.refTable != null) {
 					ConstraintMeta cnsMeta = new ConstraintMeta();
-					List<String> cols = new ArrayList<> ();
+					List<String> cols = new ArrayList<>();
 					cols.add(cm.getName());
 					cnsMeta.setColumns(new ArrayList<String>(cols));
 					cnsMeta.setTable(this.getTable());
-					cnsMeta.setName("fk_"+cnsMeta.getTable()+"_"+cm.name);
+					cnsMeta.setName("fk_" + cnsMeta.getTable() + "_" + cm.name);
 					cnsMeta.setUsing(cm.using);
 					cnsMeta.setType(ConstraintType.FOREGIN_KEY);
 					cnsMeta.setRefTable(cm.refTable);
@@ -171,13 +189,13 @@ public class TableMeta {
 				}
 				nameToColumnMeta.put(cm.getName(), cm);
 			}
-			if(extend != null && !"".equals(extend)){
+			if (extend != null && !"".equals(extend)) {
 				ConstraintMeta cnsMeta = new ConstraintMeta();
-				List<String> cols = new ArrayList<> ();
+				List<String> cols = new ArrayList<>();
 				cols.add("id");
 				cnsMeta.setColumns(new ArrayList<String>(cols));
 				cnsMeta.setTable(this.getTable());
-				cnsMeta.setName("fk_"+cnsMeta.getTable()+"_id");
+				cnsMeta.setName("fk_" + cnsMeta.getTable() + "_id");
 				cnsMeta.setUsing("btree");
 				cnsMeta.setType(ConstraintType.FOREGIN_KEY);
 				cnsMeta.setRefTable(extend);
@@ -185,37 +203,38 @@ public class TableMeta {
 			}
 		}
 	}
-	
-	
+
 	private List<String> alterColumnSql(List<ColumnMeta> columnMetas) {
 		List<String> sqls = new ArrayList<>();
-		for(ColumnMeta ocm:columnMetas) {
-			sqls.add(String.format("ALTER TABLE %s ALTER %s %s%s;",table, ocm.name,ocm.type, ocm.nullable?"":" not null"));	
-		}
-		return sqls;
-	}
-	private List<String> addColumnSql(List<ColumnMeta> columnMetas) {
-		List<String> sqls = new ArrayList<>();
-		for(ColumnMeta ocm:columnMetas) {
-			sqls.add(String.format("ALTER TABLE %s ADD %s %s%s;",table, ocm.name,ocm.type, ocm.nullable?"":" not null"));	
+		for (ColumnMeta ocm : columnMetas) {
+			sqls.add(String.format("ALTER TABLE %s ALTER %s %s%s;", table, ocm.name, ocm.type,
+					ocm.nullable ? "" : " not null"));
 		}
 		return sqls;
 	}
 
-	
-	/** drop table if exists tbl_a;*/
+	private List<String> addColumnSql(List<ColumnMeta> columnMetas) {
+		List<String> sqls = new ArrayList<>();
+		for (ColumnMeta ocm : columnMetas) {
+			sqls.add(String.format("ALTER TABLE %s ADD %s %s%s;", table, ocm.name, ocm.type,
+					ocm.nullable ? "" : " not null"));
+		}
+		return sqls;
+	}
+
+	/** drop table if exists tbl_a; */
 	public List<String> createTableSql() {
 		List<String> sqls = new ArrayList<>();
-		if(engine == null) {
+		if (engine == null) {
 			StringBuffer tbl = new StringBuffer();
 			tbl.append(String.format("CREATE TABLE %s (", table));
-			for(ColumnMeta cm:columnMetas) {
-				tbl.append(String.format("%s %s%s,", cm.name,cm.type, cm.nullable?"":" not null"));
+			for (ColumnMeta cm : columnMetas) {
+				tbl.append(String.format("%s %s%s,", cm.name, cm.type, cm.nullable ? "" : " not null"));
 			}
-			tbl.delete(tbl.length()-1, tbl.length());
+			tbl.delete(tbl.length() - 1, tbl.length());
 			tbl.append(");");
 			sqls.add(tbl.toString());
-			if(primaryKey != null) {
+			if (primaryKey != null) {
 				sqls.add(primaryKey.addSql());
 			}
 			/** 添加复合约束 */
@@ -226,11 +245,12 @@ public class TableMeta {
 
 	/**
 	 * 升级数据库，返回需要执行的sql
+	 * 
 	 * @param other
 	 * @return
 	 */
 	public List<String> upgradeTo(TableMeta other) {
-		if(!table.equals(other.table)) {
+		if (!table.equals(other.table)) {
 			return null;
 		}
 		List<String> sqls = new ArrayList<>();
@@ -240,12 +260,12 @@ public class TableMeta {
 		List<ConstraintMeta> dropForeignKeys = new ArrayList<>();
 		List<ColumnMeta> alterColumns = new ArrayList<>();
 		List<ConstraintMeta> addForeignKeys = new ArrayList<>();
-		for(ColumnMeta ocm:otherColumn) {
+		for (ColumnMeta ocm : otherColumn) {
 			ColumnMeta cm = nameToColumnMeta.get(ocm.name);
-			if(cm == null) {				
+			if (cm == null) {
 				newColumns.add(ocm);
-			}else {
-				if(cm.unique &&!ocm.unique) {
+			} else {
+				if (cm.unique && !ocm.unique) {
 					ConstraintMeta cnstMeta = new ConstraintMeta();
 					cnstMeta.setColumns(Arrays.asList(ocm.getName()));
 					cnstMeta.setTable(table);
@@ -253,8 +273,8 @@ public class TableMeta {
 					cnstMeta.setUsing(ocm.getUsing());
 					dropIndexs.add(cnstMeta);
 				}
-				/** 删除外键  */
-				if(cm.useFK && !ocm.useFK) {
+				/** 删除外键 */
+				if (cm.useFK && !ocm.useFK) {
 					ConstraintMeta cnstMeta = new ConstraintMeta();
 					cnstMeta.setColumns(Arrays.asList(cm.getName()));
 					cnstMeta.setTable(table);
@@ -263,11 +283,11 @@ public class TableMeta {
 					cnstMeta.setUsing(cm.getUsing());
 					dropForeignKeys.add(cnstMeta);
 				}
-				if(!cm.type.equals(ocm.type) || cm.nullable != ocm.nullable) {
+				if (!cm.type.equals(ocm.type) || cm.nullable != ocm.nullable) {
 					alterColumns.add(ocm);
 				}
-				if(!cm.useFK && ocm.useFK) {
-					if(ocm.useFK && ocm.refTable !=null){
+				if (!cm.useFK && ocm.useFK) {
+					if (ocm.useFK && ocm.refTable != null) {
 						ConstraintMeta cnstMeta = new ConstraintMeta();
 						cnstMeta.setColumns(Arrays.asList(cm.getName()));
 						cnstMeta.setTable(table);
@@ -279,34 +299,34 @@ public class TableMeta {
 				}
 			}
 		}
-		
+
 		Set<String> oldConstraintSet = new HashSet<String>();
 		Set<String> currentSet = new HashSet<String>();
-		
-		for(ConstraintMeta tuple:fieldConstraint) {
+
+		for (ConstraintMeta tuple : fieldConstraint) {
 			oldConstraintSet.add(String.join(",", tuple.columns));
 		}
 		List<ConstraintMeta> addUniqueConstraint = new ArrayList<>();
-		for(ConstraintMeta tuple:other.fieldConstraint) {
+		for (ConstraintMeta tuple : other.fieldConstraint) {
 			currentSet.add(String.join(",", tuple.columns));
-			if(!oldConstraintSet.contains(String.join(",", tuple.columns))){
+			if (!oldConstraintSet.contains(String.join(",", tuple.columns))) {
 				addUniqueConstraint.add(tuple);
 			}
 		}
 		List<ConstraintMeta> dropUniqueConstraint = new ArrayList<>();
-		for(ConstraintMeta tuple:fieldConstraint) {
-			if(!currentSet.contains(String.join(",", tuple.columns))){
+		for (ConstraintMeta tuple : fieldConstraint) {
+			if (!currentSet.contains(String.join(",", tuple.columns))) {
 				dropUniqueConstraint.add(tuple);
 			}
 		}
-		if(primaryKey != null && !primaryKey.equals(other.primaryKey)) {
+		if (primaryKey != null && !primaryKey.equals(other.primaryKey)) {
 			sqls.add(primaryKey.dropSql());
 		}
-		if(other.primaryKey != null && !other.primaryKey.equals(primaryKey)) {
+		if (other.primaryKey != null && !other.primaryKey.equals(primaryKey)) {
 			sqls.add(other.primaryKey.addSql());
 		}
 		sqls.addAll(addColumnSql(newColumns));
-		
+
 		sqls.addAll(ConstraintMeta.dropConstraintSql(dropIndexs));
 		sqls.addAll(ConstraintMeta.dropConstraintSql(dropForeignKeys));
 		sqls.addAll(alterColumnSql(alterColumns));
@@ -315,6 +335,7 @@ public class TableMeta {
 		sqls.addAll(ConstraintMeta.addConstraintSql(addUniqueConstraint));
 		return sqls;
 	}
+
 	public static TableMeta createBy(Class<?> entity) {
 		TableMeta tm = new TableMeta();
 		tm.table = entity.getSimpleName();
@@ -322,9 +343,9 @@ public class TableMeta {
 		tm.entity = entity;
 		Tbl tbl = entity.getAnnotation(Tbl.class);
 		TblView tblView = entity.getAnnotation(TblView.class);
-		if(tbl != null) {
-			List<ConstraintMeta> constraints =  new ArrayList<>();
-			for(Constraint c:tbl.constraints()) {
+		if (tbl != null) {
+			List<ConstraintMeta> constraints = new ArrayList<>();
+			for (Constraint c : tbl.constraints()) {
 				ConstraintMeta cm = new ConstraintMeta();
 				constraints.add(cm);
 				cm.setColumns(Arrays.asList(c.colNames()));
@@ -333,12 +354,12 @@ public class TableMeta {
 				cm.setUsing(c.using());
 			}
 			tm.setConstraints(constraints);
-			if(!tbl.extend().equals(void.class)) {
-				tm.setExtend(tbl.extend().getSimpleName());	
+			if (!tbl.extend().equals(void.class)) {
+				tm.setExtend(tbl.extend().getSimpleName());
 			}
 		}
 		List<Class<?>> classes = new ArrayList<>();
-		for(Class<?> clazz = entity;!clazz.equals(Object.class);clazz=clazz.getSuperclass()) {
+		for (Class<?> clazz = entity; !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
 			classes.add(0, clazz);
 		}
 
@@ -359,16 +380,17 @@ public class TableMeta {
 				cm.setPattern(col.pattern());
 				if (col.colDef().equals("")) {
 					Class<?> javaBaseType = cm.getJavaBaseType();
-					if(javaBaseType == null) {
-						if(field.getType() == Object.class) {
-							javaBaseType = OReflectUtil.searchGenType(clazz, classes.get(classes.size()-1), field.getGenericType());
+					if (javaBaseType == null) {
+						if (field.getType() == Object.class) {
+							javaBaseType = OReflectUtil.searchGenType(clazz, classes.get(classes.size() - 1),
+									field.getGenericType());
 							cm.setJavaBaseType(javaBaseType);
-						}else {
+						} else {
 							javaBaseType = field.getType();
 							cm.setJavaBaseType(javaBaseType);
 						}
 					}
-					String type = transType(clazz,entity,javaBaseType, col);
+					String type = transType(clazz, entity, javaBaseType, col);
 					cm.setType(type);
 				} else {
 					cm.setType(col.colDef());
@@ -380,10 +402,10 @@ public class TableMeta {
 					cm.setRefTable(col.ref().getSimpleName());
 				}
 				int index = colOrder.indexOf(cm.getName());
-				if(index < 0) {
-					colOrder.add(cm.getName());	
+				if (index < 0) {
+					colOrder.add(cm.getName());
 					columnMetas.add(cm);
-				}else {
+				} else {
 					columnMetas.set(index, cm);
 				}
 			}
@@ -392,74 +414,76 @@ public class TableMeta {
 		tm.setPrimaryKey("id");
 		tm.freshNameToField();
 		tm.freshConstraintMetaTable();
-		if(tblView != null && classes.size() >=3) {
-			if(classes.size() >=3 ){
+		if (tblView != null && classes.size() >= 3) {
+			if (classes.size() >= 3) {
 				String mainClazz = classes.get(1).getSimpleName();
 				DDEngine dde = new DDEngine();
 				tm.engine = dde;
-				Map<String,List<String>> pathToColumns = new HashMap<>();
-				for(ColumnMeta cm:tm.getColumnMetas())
-				{
+				Map<String, List<String>> pathToColumns = new HashMap<>();
+				for (ColumnMeta cm : tm.getColumnMetas()) {
 					Col col = cm.getField().getAnnotation(Col.class);
 					String pathName = col.refBy();
 					int sp = pathName.lastIndexOf('.');
 					String path = null;
 					String name = null;
-					if(sp >=0) {
-						path = mainClazz+"."+pathName.substring(0, sp);
-						name = pathName.substring(sp+1);
-					}else if(pathName.equals("")){
-						path= mainClazz;
-						name="";
-					}else {
+					if (sp >= 0) {
+						path = mainClazz + "." + pathName.substring(0, sp);
+						name = pathName.substring(sp + 1);
+					} else if (pathName.equals("")) {
+						path = mainClazz;
+						name = "";
+					} else {
 						OAssert.warnning("不合法的引用", path);
 					}
 					List<String> vals = pathToColumns.get(path);
-					if(vals == null) {
+					if (vals == null) {
 						vals = new ArrayList<>();
 						pathToColumns.put(path, vals);
 					}
-					if(path.equals("")) {	
+					if (path.equals("")) {
 						vals.add(cm.getName());
-					}else {
+					} else {
 						vals.add(name + " " + cm.getName());
 					}
 				}
-				for(String path:pathToColumns.keySet()) {
-					dde.append(String.format("%s{%s}", path,String.join(",",pathToColumns.get(path))));	
+				for (String path : pathToColumns.keySet()) {
+					dde.append(String.format("%s{%s}", path, String.join(",", pathToColumns.get(path))));
 				}
 				dde.build();
-			}else {
+			} else {
 				OAssert.warnning("Tbl必须继承一个Tbl", tm.getEntityName());
 				return null;
 			}
 		}
 		return tm;
 	}
-	/**  
-	 * 以postgresql為准 */
-	private static String transType(Class<?> forefather,Class<?> clazz,Class<?> type,Col col) {
-		if(type.equals(Long.class) || type.equals(long.class)) {
+
+	/**
+	 * 以postgresql為准
+	 */
+	private static String transType(Class<?> forefather, Class<?> clazz, Class<?> type, Col col) {
+		if (type.equals(Long.class) || type.equals(long.class)) {
 			return "bigint";
-		}else if(type.equals(String.class)) {
-			return String.format("varchar(%d)", col.size());	
-		}else if(type.equals(Integer.class) || type.equals(int.class)) {
-			return "integer";	
-		}else if(type.equals(BigDecimal.class)) {
+		} else if (type.equals(String.class)) {
+			return String.format("varchar(%d)", col.size());
+		} else if (type.equals(Integer.class) || type.equals(int.class)) {
+			return "integer";
+		} else if (type.equals(BigDecimal.class)) {
 			return String.format("decimal(%d,%d)", col.precision(), col.scale());
-		}else if(type.equals(Boolean.class) || type.equals(boolean.class)) {
-			return "boolean";	
-		}else if(type.equals(Short.class) || type.equals(short.class)) {
-			return "smallint";	
-		}else if(type.equals(Float.class) || type.equals(float.class)) {
+		} else if (type.equals(Boolean.class) || type.equals(boolean.class)) {
+			return "boolean";
+		} else if (type.equals(Short.class) || type.equals(short.class)) {
+			return "smallint";
+		} else if (type.equals(Float.class) || type.equals(float.class)) {
 			return "float";
-		}else if(type.equals(Double.class) || type.equals(double.class)) {
+		} else if (type.equals(Double.class) || type.equals(double.class)) {
 			return "double precision";
-		}else {
+		} else {
 			OAssert.fatal("不支持的数据类型:%s", type);
 		}
 		return null;
 	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -473,6 +497,7 @@ public class TableMeta {
 		result = prime * result + ((table == null) ? 0 : table.hashCode());
 		return result;
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -519,6 +544,5 @@ public class TableMeta {
 			return false;
 		return true;
 	}
-	
-}
 
+}

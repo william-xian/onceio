@@ -1,16 +1,17 @@
 package top.onceio.util;
 
-public class Tuple2<A,B> {
+public class Tuple2<A, B> {
 	public A a;
 	public B b;
-	
-	public Tuple2(){
+
+	public Tuple2() {
 	}
-	
+
 	public Tuple2(A a, B b) {
 		this.a = a;
 		this.b = b;
 	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -19,6 +20,7 @@ public class Tuple2<A,B> {
 		result = prime * result + ((b == null) ? 0 : b.hashCode());
 		return result;
 	}
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean equals(Object obj) {

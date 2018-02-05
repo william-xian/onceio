@@ -7,6 +7,6 @@ import top.onceio.mvc.annocations.AutoApi;
 
 @AutoApi(OI18n.class)
 @Cacheable
-public class OI18nProvider extends DaoProvider<OI18n>{
+public class OI18nProvider extends DaoProvider<OI18n> {
 
 }

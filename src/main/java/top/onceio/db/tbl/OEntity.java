@@ -13,49 +13,58 @@ import top.onceio.db.annotation.Col;
  *
  */
 public abstract class OEntity {
-    @Col(nullable = false)
+	@Col(nullable = false)
 	private Long id;
-    @Col(colDef="boolean default false",nullable = false)
+	@Col(colDef = "boolean default false", nullable = false)
 	private transient Boolean rm;
 	/** 用户存储额外数据，如 聚合函数 */
-	protected Map<String,Object> extra;
-	
+	protected Map<String, Object> extra;
+
 	public OEntity() {
 	}
+
 	public void init() {
 	}
-	public void initId(){
+
+	public void initId() {
 	}
+
 	public Long getId() {
 		return id;
 	}
+
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
+
 	public Boolean getRm() {
 		return rm;
 	}
+
 	public void setRm(Boolean rm) {
 		this.rm = rm;
 	}
-	public Map<String,Object> put(String key,Object val) {
-		if(extra == null) {
-			extra = new HashMap<String,Object>();
+
+	public Map<String, Object> put(String key, Object val) {
+		if (extra == null) {
+			extra = new HashMap<String, Object>();
 		}
 		extra.put(key, val);
 		return extra;
 	}
+
 	public Map<String, Object> getExtra() {
 		return extra;
 	}
+
 	public void setExtra(Map<String, Object> extra) {
 		this.extra = extra;
 	}
 
 	private static final Gson GSON = new GsonBuilder().serializeNulls().create();
-    @Override
-	public String toString(){
-    	return GSON.toJson(this);
+
+	@Override
+	public String toString() {
+		return GSON.toJson(this);
 	}
 }
