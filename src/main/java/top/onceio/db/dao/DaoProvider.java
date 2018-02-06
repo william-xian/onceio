@@ -68,7 +68,7 @@ public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 		return daoHelper.updateByTplCnd(tbl, tpl, cnd);
 	}
 
-	@Api(method = ApiMethod.REMOVE)
+	@Api(method = {ApiMethod.REMOVE,ApiMethod.GET})
 	@Override
 	public int removeById(@Param("id") Long id) {
 		return daoHelper.removeById(tbl, id);

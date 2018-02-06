@@ -8,10 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.log4j.Logger;
+
 public class ApiResover {
-
-	private Map<String, ApiPair> fixedUri = new TreeMap<>();
-
+	private static final Logger LOGGER = Logger.getLogger(ApiResover.class);
+	
+	private Map<String, ApiPair> patternToApi = new TreeMap<>();
+	private List<String> apis = new ArrayList<>();
+	
 	public ApiResover push(ApiMethod apiMethod, String api, Object bean, Method method) {
 		StringBuilder sb = new StringBuilder();
 		String[] ts = api.split("/");
@@ -23,21 +27,22 @@ public class ApiResover {
 			}
 		}
 		String pattern = sb.toString();
-		fixedUri.put(apiMethod.name() + ":" + pattern, new ApiPair(apiMethod, api, bean, method));
+		patternToApi.put(apiMethod.name() + ":" + pattern, new ApiPair(apiMethod, api, bean, method));
 		return this;
 	}
 
-	private List<String> apis = new ArrayList<>();
-
 	public ApiResover build() {
-		apis.addAll(fixedUri.keySet());
+		apis.addAll(patternToApi.keySet());
 		Collections.sort(apis, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
 				return String.CASE_INSENSITIVE_ORDER.compare(o2, o1);
 			}
-
 		});
+		for (String apiPttern : apis) {
+			ApiPair ap = patternToApi.get(apiPttern);
+			LOGGER.info(ap.getApiMethod() + " " + ap.getApi());
+		}
 		return this;
 	}
 	
@@ -55,7 +60,7 @@ public class ApiResover {
 		String target = apiMethod.name() + ":" + uri;
 		for(String api:apis) {
 			if (target.matches(api)) {
-				return fixedUri.get(api);
+				return patternToApi.get(api);
 			}
 		}
 		return null;

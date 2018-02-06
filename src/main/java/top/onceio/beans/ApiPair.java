@@ -86,7 +86,6 @@ public class ApiPair {
 					nameVarIndex.put(name.substring(1, end), i);
 				}
 			}
-
 		}
 		if (method.getParameterCount() > 0) {
 			nameType = new HashMap<>(method.getParameterCount());

@@ -353,12 +353,13 @@ public class BeansEden {
 				}
 			}
 			if (autoApi != null) {
-				if (clazz.isAssignableFrom(DaoProvider.class)) {
+				if (DaoProvider.class.isAssignableFrom(clazz)) {
 					for (Method method : DaoProvider.class.getDeclaredMethods()) {
 						Api methodApi = method.getAnnotation(Api.class);
 						if (methodApi != null
 								&& !ignoreMethods.contains(method.getName() + method.getParameterTypes().hashCode())) {
-							resoveAutoApi(clazz, autoApi, methodApi, bean, method, null);
+							//TODO
+							resoveAutoApi(clazz, autoApi, methodApi, bean, method, method.getName());
 						}
 					}
 				}

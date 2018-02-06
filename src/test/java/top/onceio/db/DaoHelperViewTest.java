@@ -76,9 +76,9 @@ public class DaoHelperViewTest extends DaoBaseTest{
 		Cnd<GoodsOrder> del = new Cnd<>(GoodsOrder.class);
 		del.ge().setId(0L);
 		daoHelper.delete(GoodsOrder.class, del);
-		daoHelper.deleteByIds(UserChief.class, ids);
 		daoHelper.deleteByIds(GoodsDesc.class, ids);
 		daoHelper.deleteByIds(Goods.class, ids);
+		daoHelper.deleteByIds(UserChief.class, ids);
 	}
 	
 	//@Test

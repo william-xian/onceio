@@ -41,6 +41,7 @@ public class Cnd<E> extends Tpl {
 	private StringBuffer selfSql = new StringBuffer();
 	private Class<E> tplClass;
 	private E tpl;
+	private boolean usingRm = false;
 
 	@SuppressWarnings("unchecked")
 	public Cnd(Class<E> tplClass) {
@@ -185,7 +186,13 @@ public class Cnd<E> extends Tpl {
 	public String whereSql(List<Object> sqlArgs) {
 		StringBuffer self = new StringBuffer();
 		if (selfSql.length() > 0) {
-			self.append("(" + selfSql + ")");
+			self.append("(" + selfSql);
+			if(!usingRm) {
+				self.append(" AND rm = false");
+			}
+			self.append(")");
+		} else { 
+			self.append("(rm = false)");
 		}
 		sqlArgs.addAll(args);
 		for (int i = 0; i < this.extLogics.size(); i++) {
@@ -226,7 +233,7 @@ public class Cnd<E> extends Tpl {
 	public String afterWhere(TableMeta tm, List<Object> sqlArgs) {
 		StringBuffer afterWhere = new StringBuffer();
 		Map<String, String> tokens = null;
-		;
+		
 		if (tm.getEngine() != null) {
 			DDEngine dde = tm.getEngine();
 			tokens = dde.getColumnToOrigin();
@@ -386,6 +393,13 @@ public class Cnd<E> extends Tpl {
 				if (method.getName().length() > 3) {
 					String fieldName = method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4);
 					String strLogic = "";
+					if(fieldName.equals("rm")) {
+						if(!usingRm) {
+							usingRm = true;		
+						}else {
+							return o;
+						}
+					}
 					if (logic != null) {
 						strLogic = logic.toString() + " ";
 					}

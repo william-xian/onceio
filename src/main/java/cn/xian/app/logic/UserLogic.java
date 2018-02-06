@@ -6,6 +6,7 @@ import java.util.Map;
 import cn.xian.app.model.entity.UserChief;
 import cn.xian.app.provider.UserProvider;
 import cn.xian.app.provider.WalletProvider;
+import top.onceio.aop.annotation.Transactional;
 import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.Page;
 import top.onceio.exception.Failed;
@@ -20,7 +21,15 @@ public class UserLogic {
 	@Using
 	private WalletProvider walletProvider;
 	
-	public boolean signup(String account,String passwd) {
+	public UserChief signup(String account,String passwd) {
+		UserChief entity = new UserChief();
+		entity.setName(account);
+		entity.setPasswd(passwd);
+		entity = userProvider.insert(entity);
+		return entity;
+	}
+	
+	public boolean signin(String account,String passwd) {
 		UserChief uc = userProvider.fetchByName(account);
 		if(uc == null) {
 			Failed.throwMsg("用户%s不存在", account);
@@ -31,17 +40,14 @@ public class UserLogic {
 		return false;
 	}
 	
-	public Page<UserChief> signin(String account,String passwd) {
-		UserChief entity = new UserChief();
-		entity.setName(account);
-		entity.setPasswd(passwd);
-		userProvider.insert(entity);
+	public Page<UserChief> find(UserChief uc) {
+		System.out.println("find:" + uc);
 		Page<UserChief> ucs = userProvider.find(new Cnd<UserChief>(UserChief.class));
 		return ucs;
 	}
 	
+	@Transactional
 	public Map<String,Object> transfer(Long from,Long to,Integer v) {
-		System.out.println("-------");
 		Map<String,Object> result = new HashMap<>();
 		result.put("before-a", walletProvider.get(from));
 		result.put("before-b", walletProvider.get(to));

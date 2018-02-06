@@ -8,6 +8,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import cn.xian.app.Launcher;
 
@@ -26,7 +27,9 @@ public class Webapp {
 		server.setConnectors(new Connector[] { connector });
 		ServletContextHandler context = new ServletContextHandler();
 		context.setContextPath("/");
-		context.addServlet(OIODispatcherServlet.class, "/").setInitParameter("launcher", cnf.getName());
+		ServletHolder servletHolder = context.addServlet(OIODispatcherServlet.class, "/");
+		servletHolder.setInitParameter("launcher", cnf.getName());
+		servletHolder.setInitOrder(1);
 		context.setResourceBase("src/main/webapp");
 		HandlerCollection handlers = new HandlerCollection();
 		handlers.setHandlers(new Handler[] { context, new DefaultHandler() });
