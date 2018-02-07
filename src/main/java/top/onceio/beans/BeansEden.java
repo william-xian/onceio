@@ -26,7 +26,7 @@ import top.onceio.OnceIO;
 import top.onceio.annotation.I18nCfg;
 import top.onceio.annotation.I18nCfgBrief;
 import top.onceio.annotation.I18nMsg;
-import top.onceio.aop.TransactionProxy;
+import top.onceio.aop.AopProxy;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
 import top.onceio.db.dao.Cnd;
@@ -208,7 +208,7 @@ public class BeansEden {
 		Set<Class<?>> definers = scanner.getClasses(Def.class);
 		for (Class<?> defClazz : definers) {
 			try {
-				TransactionProxy cglibProxy = new TransactionProxy();
+				AopProxy cglibProxy = new AopProxy();
 				Enhancer enhancer = new Enhancer();
 				enhancer.setSuperclass(defClazz);
 				enhancer.setCallback(cglibProxy);
@@ -230,7 +230,7 @@ public class BeansEden {
 				LOGGER.debug("load Api: " + defClazz.getName());
 			}
 			try {
-				TransactionProxy cglibProxy = new TransactionProxy();
+				AopProxy cglibProxy = new AopProxy();
 				Enhancer enhancer = new Enhancer();
 				enhancer.setSuperclass(defClazz);
 				enhancer.setCallback(cglibProxy);
@@ -416,10 +416,14 @@ public class BeansEden {
 		OAssert.err(bean != null, "%s:%s can not be null!", clazz.getName(), beanName);
 		LOGGER.debug("bean name=" + clazz.getName() + ":" + beanName);
 		nameToBean.put(clazz.getName() + ":" + beanName, bean);
-		for (Class<?> iter : clazz.getInterfaces()) {
-			nameToBean.put(iter.getName() + ":" + beanName, bean);
-			LOGGER.debug("beanName=" + iter.getName() + ":" + beanName);
+		Def def = clazz.getAnnotation(Def.class);
+		if(def != null && def.nameByInterface()) {
+			for (Class<?> iter : clazz.getInterfaces()) {
+				nameToBean.put(iter.getName() + ":" + beanName, bean);
+				LOGGER.debug("beanName=" + iter.getName() + ":" + beanName);
+			}	
 		}
+		
 	}
 
 	public <T> T load(Class<T> clazz) {

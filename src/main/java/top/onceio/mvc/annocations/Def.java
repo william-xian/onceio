@@ -14,4 +14,8 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Def {
 	String value() default "";
+	/**
+	 * 定义bean名的时候，使用接口
+	 */
+	boolean nameByInterface() default false;
 }
