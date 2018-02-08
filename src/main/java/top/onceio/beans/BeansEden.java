@@ -6,6 +6,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,11 +29,17 @@ import top.onceio.annotation.I18nCfg;
 import top.onceio.annotation.I18nCfgBrief;
 import top.onceio.annotation.I18nMsg;
 import top.onceio.aop.AopProxy;
+import top.onceio.aop.ProxyAction;
+import top.onceio.aop.ProxyChain;
 import top.onceio.aop.annotation.Aop;
+import top.onceio.aop.annotation.CacheEvict;
+import top.onceio.aop.annotation.CachePut;
+import top.onceio.aop.annotation.Cacheable;
 import top.onceio.aop.annotation.Transactional;
-import top.onceio.cache.annotation.CacheEvict;
-import top.onceio.cache.annotation.CachePut;
-import top.onceio.cache.annotation.Cacheable;
+import top.onceio.aop.proxies.CacheEvictProxy;
+import top.onceio.aop.proxies.CachePutProxy;
+import top.onceio.aop.proxies.CacheableProxy;
+import top.onceio.aop.proxies.TransactionalProxy;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
 import top.onceio.db.dao.Cnd;
@@ -91,8 +99,7 @@ public class BeansEden {
 	}
 
 	private AnnotationScanner scanner = new AnnotationScanner(Api.class, AutoApi.class, Definer.class, Def.class,
-			Using.class, Tbl.class, TblView.class, I18nMsg.class, I18nCfg.class,
-			Aop.class);
+			Using.class, Tbl.class, TblView.class, I18nMsg.class, I18nCfg.class, Aop.class);
 
 	private DataSource createDataSource() {
 		String driver = prop.getProperty("onceio.datasource.driver");
@@ -357,11 +364,8 @@ public class BeansEden {
 						resoveAutoApi(clazz, autoApi, methodApi, bean, method, method.getName());
 					}
 				}
-				//TODO
-				Transactional tran = method.getAnnotation(Transactional.class);
-				Cacheable cacheable = method.getAnnotation(Cacheable.class);
-				CachePut cachePut = method.getAnnotation(CachePut.class);
-				CacheEvict cacheEvict = method.getAnnotation(CacheEvict.class);
+
+				resovleMethodAop(clazz, method);
 			}
 			if (autoApi != null) {
 				if (DaoProvider.class.isAssignableFrom(clazz)) {
@@ -369,7 +373,7 @@ public class BeansEden {
 						Api methodApi = method.getAnnotation(Api.class);
 						if (methodApi != null
 								&& !ignoreMethods.contains(method.getName() + method.getParameterTypes().hashCode())) {
-							//TODO
+							// TODO
 							resoveAutoApi(clazz, autoApi, methodApi, bean, method, method.getName());
 						}
 					}
@@ -380,6 +384,88 @@ public class BeansEden {
 		apiResover.build();
 	}
 
+	private Map<String, List<Class<?>>> patternToAopClass = new HashMap<>();
+
+	private void resovleAop() {
+		for (Class<?> clazz : scanner.getClasses(Aop.class)) {
+			Aop aop = clazz.getAnnotation(Aop.class);
+			String[] patterns = aop.pattern();
+			if(patterns.length == 0) {
+				patterns = aop.value();
+			}
+			for (String pattern : patterns) {
+				List<Class<?>> aopClasses = patternToAopClass.get(pattern);
+				if (aopClasses == null) {
+					aopClasses = new ArrayList<>();
+					patternToAopClass.put(pattern, aopClasses);
+				}
+				aopClasses.add(clazz);
+			}
+		}
+	}
+
+	private void resovleMethodAop(Class<?> clazz, Method method) {
+		String func = clazz.getName() + "." + method.getName();
+
+		Set<Class<?>> aopClazz = new HashSet<>();
+		for (Map.Entry<String, List<Class<?>>> entry : patternToAopClass.entrySet()) {
+			if (func.matches(entry.getKey())) {
+				aopClazz.addAll(entry.getValue());
+			}
+		}
+		Cacheable cacheable = method.getAnnotation(Cacheable.class);
+		if(cacheable != null) {
+			aopClazz.add(CacheableProxy.class);
+		}
+		
+		CachePut cachePut = method.getAnnotation(CachePut.class);
+		if(cachePut != null) {
+			aopClazz.add(CachePutProxy.class);
+		}
+		CacheEvict cacheEvict = method.getAnnotation(CacheEvict.class);
+		if(cacheEvict != null) {
+			aopClazz.add(CacheEvictProxy.class);
+		}
+		Transactional tran = method.getAnnotation(Transactional.class);
+		if (tran != null) {
+			aopClazz.add(TransactionalProxy.class);
+		}
+		if (!aopClazz.isEmpty()) {
+			ProxyChain aopChain = AopProxy.get(method);
+			if (aopChain == null) {
+				aopChain = new ProxyChain();
+				AopProxy.push(method, aopChain);
+				List<Class<?>> sorted = sortAopClass(aopClazz);
+				for (int i = 0; i < sorted.size(); i++) {
+					ProxyAction action;
+					try {
+						action = (ProxyAction) sorted.get(i).newInstance();
+						aopChain.append(action);
+					} catch (InstantiationException | IllegalAccessException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 根据Aop的顺序生成代理链
+	 */
+	private List<Class<?>> sortAopClass(Set<Class<?>> collections) {
+		List<Class<?>> list = new ArrayList<>(collections);
+		Collections.sort(list, new Comparator<Class<?>>() {
+			@Override
+			public int compare(Class<?> o1, Class<?> o2) {
+				Aop aop1 = o1.getAnnotation(Aop.class);
+				Aop aop2 = o2.getAnnotation(Aop.class);
+				return aop1.order().compareTo(aop2.order());
+			}
+
+		});
+		return list;
+	}
+
 	public void resovle(String... packages) {
 		loadDefaultProperties();
 		nameToBean.clear();
@@ -387,7 +473,10 @@ public class BeansEden {
 		scanner.putClass(Tbl.class, OI18n.class);
 		scanner.putClass(AutoApi.class, OI18nProvider.class);
 
+		resovleAop();
+
 		loadDefiner();
+
 		DataSource ds = load(DataSource.class, null);
 		if (ds == null) {
 			ds = createDataSource();
@@ -428,13 +517,13 @@ public class BeansEden {
 		LOGGER.debug("bean name=" + clazz.getName() + ":" + beanName);
 		nameToBean.put(clazz.getName() + ":" + beanName, bean);
 		Def def = clazz.getAnnotation(Def.class);
-		if(def != null && def.nameByInterface()) {
+		if (def != null && def.nameByInterface()) {
 			for (Class<?> iter : clazz.getInterfaces()) {
 				nameToBean.put(iter.getName() + ":" + beanName, bean);
 				LOGGER.debug("beanName=" + iter.getName() + ":" + beanName);
-			}	
+			}
 		}
-		
+
 	}
 
 	public <T> T load(Class<T> clazz) {

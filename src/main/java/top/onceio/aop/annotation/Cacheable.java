@@ -1,4 +1,4 @@
-package top.onceio.cache.annotation;
+package top.onceio.aop.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;

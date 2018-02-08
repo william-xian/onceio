@@ -4,14 +4,13 @@ import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-public class AopChain {
-	private AopAction header;
-	private AopAction current;
+public class ProxyChain {
+	private ProxyAction header;
+	private ProxyAction current;
 
-	public AopChain() {
+	public ProxyChain() {
 	}
-
-	public AopChain append(AopAction action) {
+	public ProxyChain append(ProxyAction action) {
 		if (this.current == null) {
 			this.header = action;
 			this.current = action;
@@ -21,7 +20,6 @@ public class AopChain {
 		}
 		return this;
 	}
-	
 	public Object run(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
 		if (header != null) {
 			return header.intercept(obj, method, args, proxy);

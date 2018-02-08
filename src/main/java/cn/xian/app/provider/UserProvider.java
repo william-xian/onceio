@@ -1,7 +1,7 @@
 package cn.xian.app.provider;
 
 import cn.xian.app.model.entity.UserChief;
-import top.onceio.cache.annotation.Cacheable;
+import top.onceio.aop.annotation.Cacheable;
 import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.DaoProvider;
 import top.onceio.mvc.annocations.Api;

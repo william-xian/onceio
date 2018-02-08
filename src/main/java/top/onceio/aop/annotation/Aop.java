@@ -15,6 +15,6 @@ public @interface Aop {
 	 */
 	String[] value() default {};
 	String[] pattern() default {};
-	int order() default 1;
+	String order() default "";
 	
 }
