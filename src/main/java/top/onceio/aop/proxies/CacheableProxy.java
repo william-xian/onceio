@@ -18,17 +18,18 @@ public class CacheableProxy extends ProxyAction {
 		Cache cache = BeansEden.get().load(Cache.class);
 		if (cache != null) {
 			Cacheable cacheable = method.getAnnotation(Cacheable.class);
-			/** TODO */
-			String key = cacheable.key();
+			String argkey = CacheKeyResovler.extractKey(cacheable.key(), args);
+			String key = cacheable.cacheName()+argkey;
 			result = cache.get(key, method.getReturnType());
 			if(result == null) {
 				result = proxy.invokeSuper(obj, args);
 				cache.put(key, result);
 			}
-			
 		} else {
 			result = proxy.invokeSuper(obj, args);
 		}
 		return result;
 	}
+	
+
 }

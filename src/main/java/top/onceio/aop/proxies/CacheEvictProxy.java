@@ -19,9 +19,11 @@ public class CacheEvictProxy extends ProxyAction {
 		if (cache != null) {
 			result = proxy.invokeSuper(obj, args);
 			CacheEvict evict = method.getAnnotation(CacheEvict.class);
-			/** TODO */
-			String key = evict.key();
-			cache.evict(key);
+			String argkey = CacheKeyResovler.extractKey(evict.key(), args);
+			for(String cacheName:evict.cacheNames()) {
+				String key = cacheName+argkey;
+				cache.evict(key);	
+			}
 		} else {
 			result = proxy.invokeSuper(obj, args);
 		}
