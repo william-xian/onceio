@@ -11,7 +11,7 @@ import top.onceio.cache.annotation.CachePut;
 import top.onceio.cache.annotation.Cacheable;
 
 public class CacheProxy implements MethodInterceptor {
-	
+
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
 		Object result = null;

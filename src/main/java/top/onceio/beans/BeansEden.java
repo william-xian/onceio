@@ -27,6 +27,11 @@ import top.onceio.annotation.I18nCfg;
 import top.onceio.annotation.I18nCfgBrief;
 import top.onceio.annotation.I18nMsg;
 import top.onceio.aop.AopProxy;
+import top.onceio.aop.annotation.Aop;
+import top.onceio.aop.annotation.Transactional;
+import top.onceio.cache.annotation.CacheEvict;
+import top.onceio.cache.annotation.CachePut;
+import top.onceio.cache.annotation.Cacheable;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
 import top.onceio.db.dao.Cnd;
@@ -86,7 +91,8 @@ public class BeansEden {
 	}
 
 	private AnnotationScanner scanner = new AnnotationScanner(Api.class, AutoApi.class, Definer.class, Def.class,
-			Using.class, Tbl.class, TblView.class, I18nMsg.class, I18nCfg.class);
+			Using.class, Tbl.class, TblView.class, I18nMsg.class, I18nCfg.class,
+			Aop.class);
 
 	private DataSource createDataSource() {
 		String driver = prop.getProperty("onceio.datasource.driver");
@@ -351,6 +357,11 @@ public class BeansEden {
 						resoveAutoApi(clazz, autoApi, methodApi, bean, method, method.getName());
 					}
 				}
+				//TODO
+				Transactional tran = method.getAnnotation(Transactional.class);
+				Cacheable cacheable = method.getAnnotation(Cacheable.class);
+				CachePut cachePut = method.getAnnotation(CachePut.class);
+				CacheEvict cacheEvict = method.getAnnotation(CacheEvict.class);
 			}
 			if (autoApi != null) {
 				if (DaoProvider.class.isAssignableFrom(clazz)) {
