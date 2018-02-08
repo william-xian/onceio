@@ -9,7 +9,7 @@ import top.onceio.aop.annotation.CachePut;
 import top.onceio.beans.BeansEden;
 import top.onceio.cache.Cache;
 
-@Aop(order="cache")
+@Aop(order="cache-2-put")
 public class CachePutProxy extends ProxyAction {
 
 	@Override

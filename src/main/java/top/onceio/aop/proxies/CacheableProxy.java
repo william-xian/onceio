@@ -9,7 +9,7 @@ import top.onceio.aop.annotation.Cacheable;
 import top.onceio.beans.BeansEden;
 import top.onceio.cache.Cache;
 
-@Aop(order="cache")
+@Aop(order="cache-3-cacheable")
 public class CacheableProxy extends ProxyAction {
 
 	@Override

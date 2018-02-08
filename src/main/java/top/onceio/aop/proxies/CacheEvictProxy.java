@@ -9,7 +9,7 @@ import top.onceio.aop.annotation.CacheEvict;
 import top.onceio.beans.BeansEden;
 import top.onceio.cache.Cache;
 
-@Aop(order="cache")
+@Aop(order="cache-1-evict")
 public class CacheEvictProxy extends ProxyAction {
 
 	@Override
