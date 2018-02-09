@@ -16,7 +16,10 @@ public class GoodsOrder extends OEntity{
 	private Integer money;
 	@Col(nullable = false)
 	private Long ctime;
-	public long getUserId() {
+	@Col(nullable = false)
+	private Long paytime;
+	
+	public Long getUserId() {
 		return userId;
 	}
 	public void setUserId(Long userId) {
@@ -46,4 +49,11 @@ public class GoodsOrder extends OEntity{
 	public void setCtime(Long ctime) {
 		this.ctime = ctime;
 	}
+	public Long getPaytime() {
+		return paytime;
+	}
+	public void setPaytime(Long paytime) {
+		this.paytime = paytime;
+	}
+	
 }

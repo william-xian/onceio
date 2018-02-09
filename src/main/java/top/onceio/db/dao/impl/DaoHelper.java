@@ -107,7 +107,10 @@ public class DaoHelper implements DDLDao, TransDao {
 
 			List<String> sqls = new ArrayList<>();
 			for (String tbl : order) {
-				sqls.addAll(tblSqls.get(tbl));
+				List<String> list = tblSqls.get(tbl);
+				if(list != null && !list.isEmpty()) {
+					sqls.addAll(list);	
+				}
 			}
 			if (!sqls.isEmpty()) {
 				jdbcHelper.batchExec(sqls.toArray(new String[0]));
