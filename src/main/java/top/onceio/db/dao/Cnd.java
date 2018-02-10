@@ -26,7 +26,7 @@ import top.onceio.util.OUtils;
 public class Cnd<E> extends Tpl {
 	private static final Logger LOGGER = Logger.getLogger(Cnd.class);
 	private Integer page;
-	private Integer pageSize;
+	private Integer pagesize;
 	private E pageArg;
 	private Boolean isNext;
 	private HavingTpl<E> having;
@@ -53,12 +53,12 @@ public class Cnd<E> extends Tpl {
 		tpl = (E) enhancer.create();
 	}
 
-	public Integer getPageSize() {
-		return pageSize;
+	public Integer getPagesize() {
+		return pagesize;
 	}
 
-	public void setPageSize(Integer pageSize) {
-		this.pageSize = pageSize;
+	public void setPagesize(Integer pagesize) {
+		this.pagesize = pagesize;
 	}
 
 	public void setPage(Integer page) {
@@ -320,7 +320,7 @@ public class Cnd<E> extends Tpl {
 	public String pageSql(TableMeta tm, SelectTpl<E> tpl, List<Object> sqlArgs) {
 		StringBuffer s = wholeSql(tm, tpl, sqlArgs);
 		s.append(" LIMIT ? OFFSET ?");
-		sqlArgs.addAll(Arrays.asList(getPageSize(), (getPage() - 1) * getPageSize()));
+		sqlArgs.addAll(Arrays.asList(getPagesize(), (getPage() - 1) * getPagesize()));
 		return s.toString();
 	}
 

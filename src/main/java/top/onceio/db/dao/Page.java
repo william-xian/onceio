@@ -9,7 +9,7 @@ import top.onceio.util.OUtils;
  **/
 public class Page<T> {
 	Integer page;
-	Integer pageSize;
+	Integer pagesize;
 	Long total;
 	List<T> data;
 
@@ -21,12 +21,12 @@ public class Page<T> {
 		this.page = page;
 	}
 
-	public Integer getPageSize() {
-		return pageSize;
+	public Integer getPagesize() {
+		return pagesize;
 	}
 
-	public void setPageSize(Integer pageSize) {
-		this.pageSize = pageSize;
+	public void setPagesize(Integer pagesize) {
+		this.pagesize = pagesize;
 	}
 
 	public Long getTotal() {

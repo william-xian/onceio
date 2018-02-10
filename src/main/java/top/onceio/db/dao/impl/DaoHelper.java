@@ -74,7 +74,7 @@ public class DaoHelper implements DDLDao, TransDao {
 		tableToTableMeta.put(tm.getTable().toLowerCase(), tm);
 		Cnd<OTableMeta> cnd = new Cnd<>(OTableMeta.class);
 		cnd.setPage(1);
-		cnd.setPageSize(Integer.MAX_VALUE);
+		cnd.setPagesize(Integer.MAX_VALUE);
 		Page<OTableMeta> page = this.find(OTableMeta.class, cnd);
 		for (OTableMeta meta : page.getData()) {
 			if (meta.getName().equals(OTableMeta.class.getSimpleName())) {
@@ -273,7 +273,7 @@ public class DaoHelper implements DDLDao, TransDao {
 	public <E extends OEntity> E get(Class<E> tbl, Long id) {
 		Cnd<E> cnd = new Cnd<E>(tbl);
 		cnd.setPage(1);
-		cnd.setPageSize(1);
+		cnd.setPagesize(1);
 		cnd.eq().setId(id);
 		Page<E> page = findByTpl(tbl, null, cnd);
 		if (page.getData().size() == 1) {
@@ -534,12 +534,12 @@ public class DaoHelper implements DDLDao, TransDao {
 			}
 			page.setTotal(count(tbl, tpl, cnd));
 		}
-		if (cnd.getPageSize() == null) {
-			cnd.setPageSize(OConfig.PAGE_SIZE_DEFAULT);
-			page.setPageSize(OConfig.PAGE_SIZE_DEFAULT);
-		} else if (cnd.getPageSize() > OConfig.PAGE_SIZE_MAX) {
-			cnd.setPageSize(OConfig.PAGE_SIZE_MAX);
-			page.setPageSize(OConfig.PAGE_SIZE_MAX);
+		if (cnd.getPagesize() == null) {
+			cnd.setPagesize(OConfig.PAGE_SIZE_DEFAULT);
+			page.setPagesize(OConfig.PAGE_SIZE_DEFAULT);
+		} else if (cnd.getPagesize() > OConfig.PAGE_SIZE_MAX) {
+			cnd.setPagesize(OConfig.PAGE_SIZE_MAX);
+			page.setPagesize(OConfig.PAGE_SIZE_MAX);
 		}
 		if (page.getTotal() == null || page.getTotal() > 0) {
 			List<Object> sqlArgs = new ArrayList<>();
@@ -569,7 +569,7 @@ public class DaoHelper implements DDLDao, TransDao {
 			cnd = new Cnd<E>(tbl);
 		}
 		cnd.setPage(1);
-		cnd.setPageSize(1);
+		cnd.setPagesize(1);
 		Page<E> page = findByTpl(tbl, tpl, cnd);
 		if (page.getData().size() > 0) {
 			return page.getData().get(0);
@@ -604,7 +604,7 @@ public class DaoHelper implements DDLDao, TransDao {
 		}
 		Cnd<E> cnd = new Cnd<E>(tbl);
 		cnd.setPage(1);
-		cnd.setPageSize(ids.size());
+		cnd.setPagesize(ids.size());
 		cnd.in(ids.toArray(new Object[0])).setId(null);
 		Page<E> page = findByTpl(tbl, null, cnd);
 		return page.getData();

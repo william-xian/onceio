@@ -182,7 +182,7 @@ public class DaoHelperTest extends DaoBaseTest{
 		Assert.assertEquals(6, daoHelper.count(UserChief.class, cnd4));
 		
 		cnd4.setPage(-2);
-		cnd4.setPageSize(4);
+		cnd4.setPagesize(4);
 		Page<UserChief> page1 = daoHelper.find(UserChief.class, cnd4);
 		Assert.assertEquals(2,page1.getData().size());
 		Assert.assertEquals(6,page1.getTotal().longValue());

@@ -84,7 +84,7 @@ public class DaoHelperViewTest extends DaoBaseTest{
 	//@Test
 	public void findView() {
 		Cnd<GoodsOrderView> cnd = new Cnd<>(GoodsOrderView.class);
-		cnd.setPageSize(25);
+		cnd.setPagesize(25);
 		SelectTpl<GoodsOrderView> tplOrder = new SelectTpl<>(GoodsOrderView.class);
 		tplOrder.usingRowNum();
 		Page<GoodsOrderView> page = daoHelper.findByTpl(GoodsOrderView.class,tplOrder,cnd);
