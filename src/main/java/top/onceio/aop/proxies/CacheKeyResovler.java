@@ -6,7 +6,9 @@ import java.util.List;
 
 import top.onceio.exception.Failed;
 
+
 public class CacheKeyResovler {
+	
 	public static String extractKey(String key,Object[] args) {
 		StringBuilder sb = new StringBuilder();
 		List<String> marks = new ArrayList<>();
@@ -28,6 +30,13 @@ public class CacheKeyResovler {
 		}
 		return String.format(sb.toString(), objs.toArray());
 	}
+
+	/**
+	 * TODO O3，根据固定的路径和固定的类型编译编译参数对象获取链
+	 * @param key
+	 * @param args
+	 * @return
+	 */
 	public static Object extractObj(String path, Object[] args) {
 		int first = path.indexOf('.');
 		String[] p = null;
@@ -53,4 +62,51 @@ public class CacheKeyResovler {
 		return obj;
 	}
 
+	
+}
+
+class FieldPicker {
+	
+	List<Field> fields = new ArrayList<>();
+	
+	public <T> FieldPicker(Class<T> clazz,String path) {
+		int first = path.indexOf('.');
+		String[] p = null;
+		if(first >= 0) {
+			p = path.split("\\.");
+		} else {
+			p = new String[] {path};
+		}
+		for(int i = 0 ; i < p.length; i++) {
+			try {
+				Field field = clazz.getDeclaredField(p[i]);
+				field.setAccessible(true);
+				fields.add(field);
+			}catch (Exception e) {
+				e.printStackTrace();
+				Failed.throwError(e.getMessage());
+			}
+		}
+	}
+	
+	public Object getField(Object obj) {
+		boolean found = true;
+		for(Field field:fields) {
+			try {
+				if(obj != null) {
+					obj = field.get(obj);	
+				}else {
+					found = false;
+					break;
+				}
+			} catch (IllegalArgumentException|IllegalAccessException e) {
+				found = false;
+			}
+		}
+		if(found) {
+			return obj;		
+		} else {
+			return null;
+		}
+	}
 }
