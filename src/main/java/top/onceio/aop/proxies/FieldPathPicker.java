@@ -12,7 +12,7 @@ public class FieldPathPicker {
 
 	List<Tuple3<Field, String, Integer>> fields = new ArrayList<>();
 
-	public <T> FieldPathPicker(Class<T> clazz, String path) {
+	public FieldPathPicker(Class<?> clazz, String path) {
 		int first = path.indexOf('.');
 		String[] p = null;
 		if (first >= 0) {
@@ -30,16 +30,18 @@ public class FieldPathPicker {
 					String idx = fieldName.substring(leftIndex + 1, rightIndex);
 					Field field = null;
 					if (!fn.isEmpty()) {
-						field = clazz.getField(fn);
+						field = getClassField(clazz, fn);
 						field.setAccessible(true);
+						clazz = field.getType();
 					}
 					fields.add(new Tuple3<Field, String, Integer>(field, null, Integer.parseInt(idx)));	
 				} else if (leftIndex < 0 && rightIndex < 0) {
 					if (Map.class.isAssignableFrom(clazz)) {
 						fields.add(new Tuple3<Field, String, Integer>(null, fieldName, null));
 					} else {
-						Field field = clazz.getField(fieldName);
+						Field field = getClassField(clazz, fieldName);
 						field.setAccessible(true);
+						clazz = field.getType();
 						fields.add(new Tuple3<Field, String, Integer>(field, null, null));
 					}
 				} else {
@@ -53,6 +55,18 @@ public class FieldPathPicker {
 		}
 	}
 
+	private static Field getClassField(Class<?> clazz, String name) {
+		do {
+			try {
+				return clazz.getDeclaredField(name);
+			} catch (NoSuchFieldException | SecurityException e) {
+				e.printStackTrace();
+			}
+			clazz = clazz.getSuperclass();
+		} while (!clazz.equals(Object.class));
+		return null;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public Object getField(Object obj) {
 		boolean found = true;
