@@ -6,7 +6,7 @@ import java.sql.Savepoint;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import cn.xian.app.model.entity.UserChief;
+import cn.xian.app.model.entity.UserInfo;
 import top.onceio.util.IDGenerator;
 
 public class TransTest extends DaoBaseTest{
@@ -17,7 +17,7 @@ public class TransTest extends DaoBaseTest{
 	
 	@Test
 	public void tran() {
-		UserChief uc1 = new UserChief();
+		UserInfo uc1 = new UserInfo();
 		uc1.setId(IDGenerator.randomID());
 		uc1.setName("zhang"+System.currentTimeMillis());
 		uc1.setGenre(1);

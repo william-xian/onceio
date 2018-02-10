@@ -12,7 +12,7 @@ import cn.xian.app.model.entity.Goods;
 import cn.xian.app.model.entity.GoodsDesc;
 import cn.xian.app.model.entity.GoodsOrder;
 import cn.xian.app.model.entity.GoodsShipping;
-import cn.xian.app.model.entity.UserChief;
+import cn.xian.app.model.entity.UserInfo;
 import cn.xian.app.model.entity.UserFriend;
 import cn.xian.app.model.entity.UserProfile;
 import cn.xian.app.model.entity.Wallet;
@@ -53,7 +53,7 @@ public class DaoBaseTest {
 			
 		};
 		List<Class<? extends OEntity>> entities = new ArrayList<>();
-		entities.add(UserChief.class);
+		entities.add(UserInfo.class);
 		entities.add(UserProfile.class);
 		entities.add(Wallet.class);
 		entities.add(UserFriend.class);

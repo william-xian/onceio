@@ -6,9 +6,9 @@ import top.onceio.db.tbl.OEntity;
 
 @Tbl
 public class UserFriend extends OEntity{
-	@Col(ref=UserChief.class,nullable = false)
+	@Col(ref=UserInfo.class,nullable = false)
 	private Long userId;
-	@Col(ref=UserChief.class,nullable = false)
+	@Col(ref=UserInfo.class,nullable = false)
 	private Long friendId;
 	
 	public Long getUserId() {

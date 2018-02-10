@@ -6,7 +6,7 @@ import top.onceio.db.tbl.OEntity;
 
 @Tbl
 public class GoodsOrder extends OEntity{
-	@Col(ref=UserChief.class)
+	@Col(ref=UserInfo.class)
 	private Long userId;
 	@Col(ref=Goods.class,nullable = false)
 	private Long goodsId;

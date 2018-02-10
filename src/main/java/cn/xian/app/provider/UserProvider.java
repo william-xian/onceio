@@ -1,6 +1,6 @@
 package cn.xian.app.provider;
 
-import cn.xian.app.model.entity.UserChief;
+import cn.xian.app.model.entity.UserInfo;
 import top.onceio.aop.annotation.Cacheable;
 import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.DaoProvider;
@@ -8,13 +8,13 @@ import top.onceio.mvc.annocations.Api;
 import top.onceio.mvc.annocations.AutoApi;
 import top.onceio.mvc.annocations.Param;
 
-@AutoApi(UserChief.class)
+@AutoApi(UserInfo.class)
 @Cacheable
-public class UserProvider extends DaoProvider<UserChief> {
+public class UserProvider extends DaoProvider<UserInfo> {
 	@Cacheable
 	@Api
-	public UserChief fetchByName(@Param("name") String name) {
-		Cnd<UserChief> cnd = new Cnd<>(UserChief.class);
+	public UserInfo fetchByName(@Param("name") String name) {
+		Cnd<UserInfo> cnd = new Cnd<>(UserInfo.class);
 		cnd.eq().setName(name);
 		return super.fetch(null,cnd);
 	}

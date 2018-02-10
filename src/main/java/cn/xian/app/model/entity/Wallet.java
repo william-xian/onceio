@@ -5,7 +5,7 @@ import top.onceio.db.annotation.Tbl;
 import top.onceio.db.tbl.OEntity;
 
 
-@Tbl(extend=UserChief.class,autoCreate=true)
+@Tbl(extend=UserInfo.class,autoCreate=true)
 public class Wallet extends OEntity{
     @Col(nullable = true)
 	private int balance;

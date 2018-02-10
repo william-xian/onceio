@@ -3,7 +3,7 @@ package cn.xian.app.logic;
 import java.util.HashMap;
 import java.util.Map;
 
-import cn.xian.app.model.entity.UserChief;
+import cn.xian.app.model.entity.UserInfo;
 import cn.xian.app.provider.UserProvider;
 import cn.xian.app.provider.WalletProvider;
 import top.onceio.aop.annotation.Transactional;
@@ -21,8 +21,8 @@ public class UserLogic {
 	@Using
 	private WalletProvider walletProvider;
 	
-	public UserChief signup(String account,String passwd) {
-		UserChief entity = new UserChief();
+	public UserInfo signup(String account,String passwd) {
+		UserInfo entity = new UserInfo();
 		entity.setName(account);
 		entity.setPasswd(passwd);
 		entity = userProvider.insert(entity);
@@ -30,7 +30,7 @@ public class UserLogic {
 	}
 	
 	public boolean signin(String account,String passwd) {
-		UserChief uc = userProvider.fetchByName(account);
+		UserInfo uc = userProvider.fetchByName(account);
 		if(uc == null) {
 			Failed.throwMsg("用户%s不存在", account);
 		}
@@ -40,9 +40,9 @@ public class UserLogic {
 		return false;
 	}
 	
-	public Page<UserChief> find(UserChief uc) {
+	public Page<UserInfo> find(UserInfo uc) {
 		System.out.println("find:" + uc);
-		Page<UserChief> ucs = userProvider.find(new Cnd<UserChief>(UserChief.class));
+		Page<UserInfo> ucs = userProvider.find(new Cnd<UserInfo>(UserInfo.class));
 		return ucs;
 	}
 	

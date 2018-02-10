@@ -13,7 +13,7 @@ import org.junit.Test;
 import cn.xian.app.model.entity.Goods;
 import cn.xian.app.model.entity.GoodsDesc;
 import cn.xian.app.model.entity.GoodsOrder;
-import cn.xian.app.model.entity.UserChief;
+import cn.xian.app.model.entity.UserInfo;
 import cn.xian.app.model.view.GoodsOrderView;
 import top.onceio.db.dao.Cnd;
 import top.onceio.db.dao.Page;
@@ -23,7 +23,7 @@ import top.onceio.db.dao.tpl.Tpl;
 public class DaoHelperViewTest extends DaoBaseTest{
 	
 
-	private static List<UserChief> ucs = new ArrayList<>();
+	private static List<UserInfo> ucs = new ArrayList<>();
 	private static List<Goods> goodses = new ArrayList<>();
 	private static List<GoodsDesc> goodsDesces = new ArrayList<>();
 	private static List<GoodsOrder> goodsOrderes = new ArrayList<>();
@@ -34,7 +34,7 @@ public class DaoHelperViewTest extends DaoBaseTest{
 	}
 	public static void insert() {
 		for(int i = 0; i < 5; i++) {
-			UserChief uc = new UserChief();
+			UserInfo uc = new UserInfo();
 			uc.setId(1L+i);
 			uc.setName("user-"+i);
 			ucs.add(uc);
@@ -69,7 +69,7 @@ public class DaoHelperViewTest extends DaoBaseTest{
 		Cnd<GoodsOrder> rm = new Cnd<>(GoodsOrder.class);
 		rm.ge().setId(0L);
 		List<Long> ids = Arrays.asList(1L,2L,3L,4L,5L);
-		daoHelper.removeByIds(UserChief.class, ids);
+		daoHelper.removeByIds(UserInfo.class, ids);
 		daoHelper.removeByIds(Goods.class, ids);
 		daoHelper.removeByIds(GoodsDesc.class, ids);
 		daoHelper.remove(GoodsOrder.class, rm);
@@ -78,7 +78,7 @@ public class DaoHelperViewTest extends DaoBaseTest{
 		daoHelper.delete(GoodsOrder.class, del);
 		daoHelper.deleteByIds(GoodsDesc.class, ids);
 		daoHelper.deleteByIds(Goods.class, ids);
-		daoHelper.deleteByIds(UserChief.class, ids);
+		daoHelper.deleteByIds(UserInfo.class, ids);
 	}
 	
 	//@Test

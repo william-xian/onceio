@@ -8,9 +8,9 @@ import top.onceio.db.tbl.OEntity;
 public class GoodsShipping extends OEntity {
 	@Col(ref=GoodsOrder.class, nullable = false)
 	private long goodsOrderId;
-	@Col(ref=UserChief.class,nullable = false)
+	@Col(ref=UserInfo.class,nullable = false)
 	private long buyerId;
-	@Col(ref=UserChief.class,nullable = false)
+	@Col(ref=UserInfo.class,nullable = false)
 	private long receiverId;
 	@Col(size = 255)
 	private String addr;

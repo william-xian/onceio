@@ -22,7 +22,7 @@ public @interface Col {
 
 	boolean unique() default false;
 
-	String using() default "BTREE";
+	String using() default "";
 
 	boolean nullable() default true;
 
