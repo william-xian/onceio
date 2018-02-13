@@ -18,7 +18,7 @@ public class CacheableProxy extends ProxyAction {
 		Cache cache = BeansEden.get().load(Cache.class);
 		if (cache != null) {
 			Cacheable cacheable = method.getAnnotation(Cacheable.class);
-			String argkey = CacheKeyResovler.extractKey(cacheable.key(), args);
+			String argkey = CacheKeyResovler.extractKey(method,cacheable.key(), args);
 			String key = cacheable.cacheName()+argkey;
 			result = cache.get(key, method.getReturnType());
 			if(result == null) {

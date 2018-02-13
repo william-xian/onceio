@@ -9,8 +9,6 @@ import java.util.TreeMap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import top.onceio.aop.proxies.FieldPathPicker;
-
 public class FieldPathPickerTest {
 
 	@Test

@@ -1,4 +1,4 @@
-package top.onceio.aop.proxies;
+package top.onceio.util;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -6,12 +6,18 @@ import java.util.List;
 import java.util.Map;
 
 import top.onceio.exception.Failed;
-import top.onceio.util.Tuple3;
 
 public class FieldPathPicker {
 
 	List<Tuple3<Field, String, Integer>> fields = new ArrayList<>();
 
+	/**
+	 * 根据路径将clazz类型的内置方法需要的反射域保存下来。
+	 * @param clazz
+	 * @param path 如果是数组用方括号包起来
+	 *             如 [0].cars[1].name
+	 */
+	
 	public FieldPathPicker(Class<?> clazz, String path) {
 		int first = path.indexOf('.');
 		String[] p = null;

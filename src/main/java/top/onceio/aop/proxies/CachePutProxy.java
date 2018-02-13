@@ -18,7 +18,7 @@ public class CachePutProxy extends ProxyAction {
 		Cache cache = BeansEden.get().load(Cache.class);
 		if (cache != null) {
 			CachePut put = method.getAnnotation(CachePut.class);
-			String argkey = CacheKeyResovler.extractKey(put.key(), args);
+			String argkey = CacheKeyResovler.extractKey(method,put.key(), args);
 			for (String cacheName : put.cacheNames()) {
 				String key = cacheName + argkey;
 				cache.put(key, result);
