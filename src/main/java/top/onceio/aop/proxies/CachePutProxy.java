@@ -15,14 +15,24 @@ public class CachePutProxy extends ProxyAction {
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
 		Object result = proxy.invokeSuper(obj, args);
-		Cache cache = BeansEden.get().load(Cache.class);
-		if (cache != null) {
-			CachePut put = method.getAnnotation(CachePut.class);
-			String argkey = CacheKeyResovler.extractKey(method,put.key(), args);
-			for (String cacheName : put.cacheNames()) {
-				String key = cacheName + argkey;
-				cache.put(key, result);
+		CachePut put = method.getAnnotation(CachePut.class);
+		if (put != null ) {
+			if(put.cacheNames().length > 0) {
+				for (String cacheName : put.cacheNames()) {
+					Cache cache = BeansEden.get().load(Cache.class, cacheName);
+					if (cache != null) {
+						String key = CacheKeyResovler.extractKey(method, put.key(), args);
+						cache.put(key, result);
+					}
+				}	
+			} else {
+				Cache cache = BeansEden.get().load(Cache.class, "");
+				if (cache != null) {
+					String key = CacheKeyResovler.extractKey(method, put.key(), args);
+					cache.put(key, result);
+				}
 			}
+			
 		}
 		return result;
 	}
