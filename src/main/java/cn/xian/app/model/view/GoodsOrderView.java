@@ -6,7 +6,7 @@ import top.onceio.db.annotation.TblView;
 
 @TblView
 public class GoodsOrderView extends GoodsOrder{
-	@Col(refBy="userId-UserChief.name")
+	@Col(refBy="userId-UserInfo.name")
 	private String userName;
 	@Col(refBy="goodsId-Goods.name")
 	private String goodsName;

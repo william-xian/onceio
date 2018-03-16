@@ -16,7 +16,7 @@ public class GoodsOrder extends OEntity{
 	private Integer money;
 	@Col(nullable = false)
 	private Long ctime;
-	@Col(nullable = false)
+	@Col(nullable = true)
 	private Long paytime;
 	
 	public Long getUserId() {
