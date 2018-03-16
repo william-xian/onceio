@@ -141,8 +141,7 @@ public class BeansEden {
 		};
 	}
 
-	private JdbcHelper createJdbcHelper(DataSource ds, IdGenerator idGenerator,
-			List<Class<? extends OEntity>> entities) {
+	private JdbcHelper createJdbcHelper(DataSource ds) {
 		JdbcHelper jdbcHelper = new JdbcHelper();
 		jdbcHelper.setDataSource(ds);
 		return jdbcHelper;
@@ -489,7 +488,7 @@ public class BeansEden {
 		}
 		JdbcHelper jdbcHelper = load(JdbcHelper.class, null);
 		if (jdbcHelper == null) {
-			jdbcHelper = createJdbcHelper(ds, idGenerator, matchTblTblView());
+			jdbcHelper = createJdbcHelper(ds);
 			store(JdbcHelper.class, null, jdbcHelper);
 		}
 		DaoHelper daoHelper = load(DaoHelper.class, null);
