@@ -508,7 +508,7 @@ public class BeansEden {
 
 	}
 
-	protected <T> void store(Class<T> clazz, String beanName, Object bean) {
+	public <T> void store(Class<T> clazz, String beanName, Object bean) {
 		if (beanName == null) {
 			beanName = "";
 		}

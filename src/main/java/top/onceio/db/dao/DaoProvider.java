@@ -26,6 +26,14 @@ public abstract class DaoProvider<T extends OEntity> implements Dao<T> {
 		tbl = (Class<T>) OReflectUtil.searchGenType(DaoProvider.class, this.getClass(), t);
 	}
 
+	public DaoHelper getDaoHelper() {
+		return daoHelper;
+	}
+
+	public void setDaoHelper(DaoHelper daoHelper) {
+		this.daoHelper = daoHelper;
+	}
+
 	@Api(method = { ApiMethod.GET, ApiMethod.POST })
 	@Override
 	public T get(@Param("id") Long id) {
