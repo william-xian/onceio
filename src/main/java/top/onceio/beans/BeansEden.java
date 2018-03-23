@@ -495,6 +495,10 @@ public class BeansEden {
 		if (daoHelper == null) {
 			daoHelper = createDaoHelper(jdbcHelper, idGenerator, matchTblTblView());
 			store(DaoHelper.class, null, daoHelper);
+		}else {
+			if(daoHelper.getEntities() == null) {
+				daoHelper.init(jdbcHelper, idGenerator, matchTblTblView());
+			}
 		}
 		loadDefined();
 
