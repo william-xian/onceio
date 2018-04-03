@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
@@ -67,14 +68,14 @@ import top.onceio.util.OUtils;
 public class BeansEden {
 	private final static Logger LOGGER = Logger.getLogger(BeansEden.class);
 
-	private Map<String, Object> nameToBean = new HashMap<>();
+	private Map<String, Object> nameToBean = new ConcurrentHashMap<>();
 	private ApiResover apiResover = new ApiResover();
 	private Properties prop = new Properties();
 
 	private BeansEden() {
 	}
 
-	private static volatile BeansEden instance = null;
+	private static BeansEden instance = null;
 
 	public static BeansEden get() {
 		synchronized (BeansEden.class) {
@@ -467,7 +468,6 @@ public class BeansEden {
 
 	public void resovle(String... packages) {
 		loadDefaultProperties();
-		nameToBean.clear();
 		scanner.scanPackages(packages);
 		scanner.putClass(Tbl.class, OI18n.class);
 		scanner.putClass(AutoApi.class, OI18nProvider.class);

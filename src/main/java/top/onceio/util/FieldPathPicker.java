@@ -51,7 +51,6 @@ public class FieldPathPicker {
 						fields.add(new Tuple3<Field, String, Integer>(field, null, null));
 					}
 				} else {
-					System.out.println(fieldName + " - " + leftIndex + "," + rightIndex);
 					Failed.throwError("%s 不合法", path);
 				}
 			}
