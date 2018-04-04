@@ -10,11 +10,9 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import cn.xian.app.Launcher;
-
 public class Webapp {
 
-	private static final Logger LOGGER = Logger.getLogger(Launcher.class);
+	private static final Logger LOGGER = Logger.getLogger(Webapp.class);
 
 	public static void run(Class<?> cnf, String[] args) {
 		String webPort = System.getenv("PORT");
