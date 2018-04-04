@@ -78,19 +78,19 @@ public class OReflectUtil {
 			return null;
 		} else if (type.equals(String.class)) {
 			return (T) val;
-		} else if (type.equals(Integer.class)) {
+		} else if (type.equals(int.class) || type.equals(Integer.class)) {
 			return (T) Integer.valueOf(val);
-		} else if (type.equals(Long.class)) {
+		} else if (type.equals(long.class) || type.equals(Long.class)) {
 			return (T) Long.valueOf(val);
-		} else if (type.equals(Boolean.class)) {
+		} else if (type.equals(boolean.class) || type.equals(Boolean.class)) {
 			return (T) Boolean.valueOf(val);
-		} else if (type.equals(Byte.class)) {
+		} else if (type.equals(byte.class) || type.equals(Byte.class)) {
 			return (T) Byte.valueOf(val);
-		} else if (type.equals(Short.class)) {
+		} else if (type.equals(short.class) || type.equals(Short.class)) {
 			return (T) Short.valueOf(val);
-		} else if (type.equals(Double.class)) {
+		} else if (type.equals(double.class) || type.equals(Double.class)) {
 			return (T) Double.valueOf(val);
-		} else if (type.equals(Float.class)) {
+		} else if (type.equals(float.class) || type.equals(Float.class)) {
 			return (T) Float.valueOf(val);
 		} else if (type.equals(BigDecimal.class)) {
 			return (T) BigDecimal.valueOf(Double.valueOf(val));

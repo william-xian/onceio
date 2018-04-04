@@ -613,7 +613,7 @@ public class BeansEden {
 		List<OI18n> i18ns = new ArrayList<>();
 		for (Class<?> clazz : classes) {
 			I18nCfg group = clazz.getAnnotation(I18nCfg.class);
-			for (Field field : clazz.getFields()) {
+			for (Field field : clazz.getDeclaredFields()) {
 				field.setAccessible(true);
 				I18nCfgBrief cons = field.getAnnotation(I18nCfgBrief.class);
 				try {
@@ -635,8 +635,7 @@ public class BeansEden {
 					} else {
 						/** The val depend on database */
 						if (!val.equals(i18n.getVal())) {
-							i18n.setVal(val);
-							field.set(null, OReflectUtil.strToBaseType(field.getType(), val));
+							field.set(null, OReflectUtil.strToBaseType(field.getType(), i18n.getVal()));
 							LOGGER.debug("reload: " + i18n);
 						}
 						if (!i18n.getName().equals(name)) {
@@ -646,6 +645,7 @@ public class BeansEden {
 						}
 					}
 				} catch (IllegalArgumentException | IllegalAccessException e) {
+					e.printStackTrace();
 					Failed.throwError(e.getMessage());
 				}
 			}
