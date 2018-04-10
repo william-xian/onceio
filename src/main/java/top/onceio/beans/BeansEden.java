@@ -44,7 +44,7 @@ import top.onceio.aop.proxies.TransactionalProxy;
 import top.onceio.db.annotation.Tbl;
 import top.onceio.db.annotation.TblView;
 import top.onceio.db.dao.Cnd;
-import top.onceio.db.dao.DaoProvider;
+import top.onceio.db.dao.DaoHolder;
 import top.onceio.db.dao.IdGenerator;
 import top.onceio.db.dao.impl.DaoHelper;
 import top.onceio.db.jdbc.JdbcHelper;
@@ -368,8 +368,8 @@ public class BeansEden {
 				resovleMethodAop(clazz, method);
 			}
 			if (autoApi != null) {
-				if (DaoProvider.class.isAssignableFrom(clazz)) {
-					for (Method method : DaoProvider.class.getDeclaredMethods()) {
+				if (DaoHolder.class.isAssignableFrom(clazz)) {
+					for (Method method : DaoHolder.class.getDeclaredMethods()) {
 						Api methodApi = method.getAnnotation(Api.class);
 						if (methodApi != null
 								&& !ignoreMethods.contains(method.getName() + method.getParameterTypes().hashCode())) {
