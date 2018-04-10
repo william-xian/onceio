@@ -52,7 +52,7 @@ public class DaoHelper implements DDLDao, TransDao {
 
 	public boolean exist(Class<?> tbl) {
 		Long cnt = (Long) jdbcHelper.queryForObject(
-				String.format("select count(*) from pg_class where relname = '%s'", tbl.getSimpleName().toLowerCase()));
+				String.format("SELECT count(*) FROM pg_class WHERE relname = '%s'", tbl.getSimpleName().toLowerCase()));
 		if (cnt != null && cnt > 0) {
 			return true;
 		} else {
@@ -91,8 +91,12 @@ public class DaoHelper implements DDLDao, TransDao {
 			Map<String, List<String>> tblSqls = new HashMap<>();
 			for (Class<? extends OEntity> tbl : entities) {
 				List<String> sqls = this.createOrUpdate(tbl);
-				if (sqls != null && !sqls.isEmpty()) {
-					tblSqls.put(tbl.getSimpleName(), sqls);
+				/** 说明有变更之处  */
+				if (sqls != null) {
+					/** 说明有数据库字段更改 */
+					if(!sqls.isEmpty()) {
+						tblSqls.put(tbl.getSimpleName(), sqls);
+					}
 					Cnd<OTableMeta> cndMeta = new Cnd<>(OTableMeta.class);
 					cndMeta.eq().setName(tbl.getSimpleName());
 					TableMeta tblMeta = TableMeta.createBy(tbl);
