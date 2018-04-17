@@ -470,7 +470,7 @@ public class BeansEden {
 		loadDefaultProperties();
 		scanner.scanPackages(packages);
 		scanner.putClass(Tbl.class, OI18n.class);
-		scanner.putClass(AutoApi.class, OI18nProvider.class);
+		scanner.putClass(AutoApi.class, OI18nHolder.class);
 
 		resovleAop();
 
@@ -576,7 +576,7 @@ public class BeansEden {
 	}
 
 	private void annlysisI18nMsg() {
-		OI18nProvider dao = this.load(OI18nProvider.class);
+		OI18nHolder dao = this.load(OI18nHolder.class);
 		Set<Class<?>> classes = scanner.getClasses(I18nMsg.class);
 		if (classes == null)
 			return;
@@ -606,7 +606,7 @@ public class BeansEden {
 	}
 
 	private void annlysisConst() {
-		OI18nProvider dao = this.load(OI18nProvider.class);
+		OI18nHolder dao = this.load(OI18nHolder.class);
 		Set<Class<?>> classes = scanner.getClasses(I18nCfg.class);
 		if (classes == null)
 			return;
