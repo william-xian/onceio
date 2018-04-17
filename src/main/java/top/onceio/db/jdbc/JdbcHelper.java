@@ -25,7 +25,7 @@ public class JdbcHelper {
 	private static ThreadLocal<Connection> trans = new ThreadLocal<Connection>();
 
 	private DataSource dataSource;
-
+	
 	public DataSource getDataSource() {
 		return dataSource;
 	}
@@ -33,7 +33,7 @@ public class JdbcHelper {
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-
+	
 	/**
 	 * Attempts to change the transaction isolation level for this
 	 * <code>Connection</code> object to the one given. The constants defined in

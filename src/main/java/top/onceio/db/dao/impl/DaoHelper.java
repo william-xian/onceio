@@ -51,9 +51,14 @@ public class DaoHelper implements DDLDao, TransDao {
 	}
 
 	public boolean exist(Class<?> tbl) {
-		Long cnt = (Long) jdbcHelper.queryForObject(
-				String.format("SELECT count(*) FROM pg_class WHERE relname = '%s'", tbl.getSimpleName().toLowerCase()));
-		if (cnt != null && cnt > 0) {
+		Long cnt = 0L;
+		try {
+			 cnt = (Long) jdbcHelper.queryForObject(
+					String.format("SELECT count(*) FROM %s", tbl.getSimpleName().toLowerCase()));
+		}catch(Failed e) {
+			cnt = -1L;
+		}
+		if (cnt != null && cnt >= 0) {
 			return true;
 		} else {
 			return false;
@@ -77,7 +82,7 @@ public class DaoHelper implements DDLDao, TransDao {
 		cnd.setPagesize(Integer.MAX_VALUE);
 		Page<OTableMeta> page = this.find(OTableMeta.class, cnd);
 		for (OTableMeta meta : page.getData()) {
-			if (meta.getName().equals(OTableMeta.class.getSimpleName())) {
+			if (meta.getName().equals(OTableMeta.class.getSimpleName().toLowerCase())) {
 				continue;
 			}
 			TableMeta old = OUtils.createFromJson(meta.getVal(), TableMeta.class);
@@ -95,10 +100,10 @@ public class DaoHelper implements DDLDao, TransDao {
 				if (sqls != null) {
 					/** 说明有数据库字段更改 */
 					if(!sqls.isEmpty()) {
-						tblSqls.put(tbl.getSimpleName(), sqls);
+						tblSqls.put(tbl.getSimpleName().toLowerCase(), sqls);
 					}
 					Cnd<OTableMeta> cndMeta = new Cnd<>(OTableMeta.class);
-					cndMeta.eq().setName(tbl.getSimpleName());
+					cndMeta.eq().setName(tbl.getSimpleName().toLowerCase());
 					TableMeta tblMeta = TableMeta.createBy(tbl);
 					OTableMeta ootm = this.fetch(OTableMeta.class, null, cndMeta);
 					save(ootm, tblMeta.getTable(), OUtils.toJSON(tblMeta));
@@ -203,7 +208,7 @@ public class DaoHelper implements DDLDao, TransDao {
 		if (tm == null) {
 			return false;
 		}
-		String sql = String.format("DROP TABLE IF EXISTS %s;", tbl.getSimpleName());
+		String sql = String.format("DROP TABLE IF EXISTS %s;", tbl.getSimpleName().toLowerCase());
 		jdbcHelper.batchUpdate(sql);
 		return true;
 	}

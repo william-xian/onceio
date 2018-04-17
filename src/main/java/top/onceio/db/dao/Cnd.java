@@ -301,7 +301,7 @@ public class Cnd<E> extends Tpl {
 				}
 				sqlSelect.delete(sqlSelect.length() - 1, sqlSelect.length());
 			}
-			String mainPath = tm.getEntity().getSuperclass().getSimpleName();
+			String mainPath = tm.getEntity().getSuperclass().getSimpleName().toLowerCase();
 			String joinTables = dde.genericJoinSqlByParams(mainPath, params, null);
 			sqlSelect.append(String.format(" FROM %s", joinTables));
 			System.err.println(sqlSelect);

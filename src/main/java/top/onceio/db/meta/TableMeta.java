@@ -338,7 +338,7 @@ public class TableMeta {
 
 	public static TableMeta createBy(Class<?> entity) {
 		TableMeta tm = new TableMeta();
-		tm.table = entity.getSimpleName();
+		tm.table = entity.getSimpleName().toLowerCase();
 		tm.entityName = entity.getName();
 		tm.entity = entity;
 		Tbl tbl = entity.getAnnotation(Tbl.class);
@@ -355,7 +355,7 @@ public class TableMeta {
 			}
 			tm.setConstraints(constraints);
 			if (!tbl.extend().equals(void.class)) {
-				tm.setExtend(tbl.extend().getSimpleName());
+				tm.setExtend(tbl.extend().getSimpleName().toLowerCase());
 			}
 		}
 		List<Class<?>> classes = new ArrayList<>();
@@ -399,7 +399,7 @@ public class TableMeta {
 				cm.setUsing(col.using());
 				if (col.ref() != void.class) {
 					cm.setUseFK(col.useFK());
-					cm.setRefTable(col.ref().getSimpleName());
+					cm.setRefTable(col.ref().getSimpleName().toLowerCase());
 				}
 				int index = colOrder.indexOf(cm.getName());
 				if (index < 0) {
@@ -416,7 +416,7 @@ public class TableMeta {
 		tm.freshConstraintMetaTable();
 		if (tblView != null && classes.size() >= 3) {
 			if (classes.size() >= 3) {
-				String mainClazz = classes.get(1).getSimpleName();
+				String mainClazz = classes.get(1).getSimpleName().toLowerCase();
 				DDEngine dde = new DDEngine();
 				tm.engine = dde;
 				Map<String, List<String>> pathToColumns = new HashMap<>();
