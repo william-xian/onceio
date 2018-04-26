@@ -13,7 +13,14 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-  
+
+    <scm>
+        <connection>scm:git:https://github.com/william-xian/onceio.git</connection>
+        <developerConnection>scm:git:https://github.com/william-xian/onceio.git</developerConnection>
+        <url>https://github.com/william-xian/onceio</url>
+    </scm>
+    
+
   <dependencies>
   	<dependency>
     	<groupId>javax.servlet</groupId>
@@ -134,15 +141,30 @@
 					</execution>
 				</executions>
 			</plugin>
+   <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+            <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                    <goal>sign</goal>
+                </goals>
+            </execution>
+        </executions>
+    </plugin>
 		</plugins>
 	</build>
 		<distributionManagement>
 		  <!-- 
+		   -->
 		  <snapshotRepository>
 			<id>sonatype-nexus-snapshots</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		   </snapshotRepository>
-		   -->
+
 		  <repository>
 			<id>sonatype-nexus-staging</id>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
