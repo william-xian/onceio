@@ -4,6 +4,7 @@
 	<groupId>top.onceio</groupId>
 	<artifactId>onceio</artifactId>
 	<version>0.0.1</version>
+	
 	<name>onceio</name>
 	<description>onceio is an easy to using and learnning ORM framework.</description>
 	<url>http://www.onceio.top/</url>
@@ -102,5 +103,4 @@
 			</distributionManagement>
 		</profile>
 	</profiles>
-	<packaging>pom</packaging>
 </project>
