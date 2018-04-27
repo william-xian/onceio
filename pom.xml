@@ -106,5 +106,6 @@
 	<modules>
 		<module>onceio-core</module>
 		<module>onceio-servlet</module>
+		<module>onceio-vertx</module>
 	</modules>
 </project>
